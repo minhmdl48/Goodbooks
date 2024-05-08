@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "144517044928",
+    "project_id": "goodbooks-d9ed1",
+    "storage_bucket": "goodbooks-d9ed1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:144517044928:android:e2adcf5ad5355b468a6b25",
+        "android_client_info": {
+          "package_name": "com.minhmdl.goodbooks"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCX9gVHh85nt3RkdSZJsgI4_u24htMrfCM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
