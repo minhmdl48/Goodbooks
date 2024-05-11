@@ -1,8 +1,7 @@
 package com.minhmdl.goodbooks.screens.book
 
 import android.widget.Toast
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -27,12 +26,11 @@ import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.RadioButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.StarHalf
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -51,18 +49,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.text.HtmlCompat
@@ -77,6 +74,7 @@ import com.minhmdl.goodbooks.R
 import com.minhmdl.goodbooks.model.Book
 import com.minhmdl.goodbooks.screens.shelf.ShelfViewModel
 import com.minhmdl.goodbooks.ui.theme.Blue_Text
+import com.minhmdl.goodbooks.ui.theme.Gray200
 import com.minhmdl.goodbooks.ui.theme.Yellow
 import com.minhmdl.goodbooks.utils.DataOrException
 import com.minhmdl.goodbooks.utils.ShelvesAlertDialog
@@ -93,7 +91,7 @@ fun BookScreen(navController: NavController, bookViewModel: BookViewModel,shelfV
         mutableStateOf(false)
     }
 
-    val bookInfo = produceState<DataOrException<Book, Boolean, Exception>>(
+    val bookInfo = produceState(
         initialValue = DataOrException(loading = (true))
     ) {
         value = bookId?.let { bookViewModel.getBookInfo(it) }!!
@@ -105,7 +103,6 @@ fun BookScreen(navController: NavController, bookViewModel: BookViewModel,shelfV
     val context = LocalContext.current
 
     val sheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
-
 
     val scope = rememberCoroutineScope()
     val sheetScaffoldState = rememberBottomSheetScaffoldState(
@@ -130,39 +127,39 @@ fun BookScreen(navController: NavController, bookViewModel: BookViewModel,shelfV
                     }
                 })
             },
-        floatingActionButton = {
-            if (isFabVisible) {
-                ExtendedFloatingActionButton(
-                    modifier = Modifier
-                        .padding(bottom = 50.dp),
-                    onClick = {
-                        isFabVisible = false
-                        scope.launch {
-                            if (sheetState.isCollapsed) {
-                                sheetState.expand()
-                            }
-                        }
-                    },
-
-                    contentColor = Color.White,
-                    containerColor = Color(0xff3d544e),
-                    content={
-                        Icon(
-                            Icons.Rounded.Add,
-                            contentDescription = "Add to My Books",
-                            tint = Color.White
-                        )
-                        Text(
-                            "Add to My Books",
-                            fontFamily = poppinsFamily,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
-                )
-            }
-        },
+//        floatingActionButton = {
+//            if (isFabVisible) {
+//                ExtendedFloatingActionButton(
+//                    modifier = Modifier
+//                        .padding(bottom = 50.dp),
+//                    onClick = {
+//                        isFabVisible = false
+//                        scope.launch {
+//                            if (sheetState.isCollapsed) {
+//                                sheetState.expand()
+//                            }
+//                        }
+//                    },
+//
+//                    contentColor = Color.White,
+////                    containerColor = Color(0xff3d544e),
+//                    content={
+//                        Icon(
+//                            Icons.Rounded.Add,
+//                            contentDescription = "Add to My Books",
+//                            tint = Color.White
+//                        )
+//                        Text(
+//                            "Add to My Books",
+//                            fontFamily = poppinsFamily,
+//                            fontSize = 14.sp,
+//                            fontWeight = FontWeight.Bold,
+//                            color = Color.White
+//                        )
+//                    }
+//                )
+//            }
+//        },
         sheetContent = {
             BottomSheetContent(onSave = { name ->
                 shelfName = name
@@ -296,12 +293,12 @@ fun Details(navController: NavController, book: Book?) {
         modifier = Modifier
             .fillMaxSize()
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.details_background),
-            contentDescription = "backgroundImage",
-            modifier = Modifier.fillMaxWidth(),
-            contentScale = ContentScale.FillBounds
-        )
+//        Image(
+//            painter = painterResource(id = R.drawable.details_background),
+//            contentDescription = "backgroundImage",
+//            modifier = Modifier.fillMaxWidth(),
+//            contentScale = ContentScale.FillBounds
+//        )
         Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
             TopSection(navController = navController)
             if (book == null) {
@@ -338,42 +335,25 @@ fun Details(navController: NavController, book: Book?) {
 
 @Composable
 fun TopSection(navController: NavController) {
-    Column(modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 20.dp)) {
+    Column(modifier = Modifier.padding(start = 15.dp, end = 20.dp, top = 15.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(80.dp)
         ) {
-            Surface(
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "",
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(30.dp)
                     .clip(CircleShape)
                     .clickable(enabled = true, onClick = {
                         navController.popBackStack()
-                    }),
-                shape = CircleShape,
-                color = Color.Transparent,
-                border = BorderStroke(
-                    width = 0.9.dp,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer
-                )
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_arrow_back),
-                    contentDescription = "Back",
-                    modifier = Modifier
-                        .size(30.dp)
-                        .padding(10.dp)
-                        .clip(CircleShape)
-                        .background(color = Color.Transparent, shape = CircleShape),
-                    colorFilter = ColorFilter.tint(Color.White)
-                )
-            }
-
+                    })
+            )
         }
     }
 }
-
 
 @Composable
 fun BookImage(imageUrl: String) {
@@ -387,6 +367,7 @@ fun BookImage(imageUrl: String) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(imageUrl)
+                    .error(R.drawable.cover_not_available)
                     .build(),
                 contentDescription = "Book Image",
                 contentScale = ContentScale.Inside,
@@ -398,18 +379,9 @@ fun BookImage(imageUrl: String) {
                     )
                     .scale(2.5f)
             )
-
         }
     }
 }
-
-@Preview
-@Composable
-fun PreviewBookImage() {
-    val imageUrl = "https://media.tatler.com/photos/6141d4d7ba7e3beacb745920/1:1/w_1280,h_1280,c_limit/Duke-of-Beaufort-2008-rex_b.jpg"
-    BookImage(imageUrl = imageUrl)
-}
-
 
 @Composable
 fun BookDescription(
@@ -461,7 +433,7 @@ fun BookDescription(
                         color = MaterialTheme.colorScheme.onBackground,
                     )
                     Text(
-                        text = "by $bookAuthor",
+                        text = "$bookAuthor",
                         fontFamily = poppinsFamily,
                         textAlign = TextAlign.Center,
                         fontSize = 16.sp,
@@ -627,13 +599,19 @@ fun BookDescription(
                     )
                 }
             }
+            HorizontalDivider(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 2.dp),
+                color = Gray200
+            )
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
                 Row {
                     Text(
-                        text = "About The Book",
+                        text = stringResource(id = R.string.book_description),
                         fontFamily = poppinsFamily,
                         textAlign = TextAlign.Start,
                         fontSize = 20.sp,
@@ -668,7 +646,6 @@ fun BookDescription(
                             .align(Alignment.CenterVertically),
                         onTextLayout = { layoutResult ->
                             if (layoutResult.lineCount > 3) {
-                                // get the text beyond the 4 lines
                                 restOfText =
                                     firstParagraph.drop(1).substring(layoutResult.getLineEnd(3))
                             }
@@ -684,19 +661,58 @@ fun BookDescription(
                         color = MaterialTheme.colorScheme.onBackground
                     )
                 }
-                Text(
-                    text = remainingDescription,
-                    fontFamily = poppinsFamily,
-                    textAlign = TextAlign.Justify,
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onBackground
+                ExpandingText(
+                    modifier = Modifier.padding(top = 10.dp),
+                    text = remainingDescription
                 )
                 Spacer(modifier = Modifier.height(50.dp))
             }
         }
     }
 }
+@Composable
+fun ExpandingText(modifier: Modifier = Modifier, text: String) {
+    var isExpanded by remember { mutableStateOf(false) }
+    val textLayoutResultState = remember { mutableStateOf<TextLayoutResult?>(null) }
+    var isClickable by remember { mutableStateOf(false) }
+    var finalText by remember { mutableStateOf(text) }
 
+    val textLayoutResult = textLayoutResultState.value
+    LaunchedEffect(textLayoutResult) {
+        if (textLayoutResult == null) return@LaunchedEffect
+
+        when {
+            isExpanded -> {
+                finalText = "$text Show Less"
+            }
+            !isExpanded && textLayoutResult.hasVisualOverflow -> {
+                val lastCharIndex = textLayoutResult.getLineEnd(2)
+                val showMoreString = "... Show More"
+                val adjustedText = text
+                    .substring(startIndex = 0, endIndex = lastCharIndex)
+                    .dropLast(showMoreString.length)
+                    .dropLastWhile { it == ' ' || it == '.' }
+
+                finalText = "$adjustedText$showMoreString"
+
+                isClickable = true
+            }
+        }
+    }
+
+    Text(
+        text = finalText,
+        fontFamily = poppinsFamily,
+        textAlign = TextAlign.Justify,
+        fontSize = 13.sp,
+        color = MaterialTheme.colorScheme.onBackground,
+        maxLines = if (isExpanded) Int.MAX_VALUE else 3,
+        onTextLayout = { textLayoutResultState.value = it },
+        modifier = modifier
+            .clickable(enabled = isClickable) { isExpanded = !isExpanded }
+            .animateContentSize(),
+    )
+}
 @Composable
 fun BottomSheetContent(onSave: (String) -> Unit, onRemove: () -> Unit) {
     var selectedOption by remember { mutableStateOf("") }

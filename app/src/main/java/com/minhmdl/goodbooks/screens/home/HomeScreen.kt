@@ -1,28 +1,18 @@
 package com.minhmdl.goodbooks.screens.home
 
 import android.content.ContentValues.TAG
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.ImageDecoder
-import android.net.Uri
 import android.util.Log
-import android.widget.Toast
-import androidx.activity.compose.ManagedActivityResultLauncher
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
-import androidx.compose.material3.Card
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -41,12 +31,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -54,8 +43,6 @@ import com.google.firebase.ktx.Firebase
 import com.grayseal.bookshelf.ui.theme.loraFamily
 import com.grayseal.bookshelf.ui.theme.poppinsFamily
 import com.minhmdl.goodbooks.R
-import com.minhmdl.goodbooks.data.StoreProfileImage
-import com.minhmdl.goodbooks.data.StoreSession
 import com.minhmdl.goodbooks.data.StoreUserName
 import com.minhmdl.goodbooks.model.Book
 import com.minhmdl.goodbooks.navigation.GoodbooksDestinations
@@ -64,16 +51,14 @@ import com.minhmdl.goodbooks.screens.login.LoginScreen
 import com.minhmdl.goodbooks.screens.login.LoginViewModel
 import com.minhmdl.goodbooks.screens.search.SearchViewModel
 import com.minhmdl.goodbooks.ui.theme.Black
-import com.minhmdl.goodbooks.ui.theme.Green
+import com.minhmdl.goodbooks.ui.theme.Gray200
 import com.minhmdl.goodbooks.ui.theme.GreenIndicator
 import com.minhmdl.goodbooks.ui.theme.White
 import com.minhmdl.goodbooks.utils.Category
-import com.minhmdl.goodbooks.utils.NavBar
-import com.minhmdl.goodbooks.utils.ShelvesAlertDialog
-import com.minhmdl.goodbooks.utils.rememberFirebaseAuthLauncher
 import com.minhmdl.goodbooks.utils.GoodbooksNavigationDrawerItem
+import com.minhmdl.goodbooks.utils.NavBar
 import com.minhmdl.goodbooks.utils.Reading
-
+import com.minhmdl.goodbooks.utils.ShelvesAlertDialog
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -87,7 +72,7 @@ fun HomeScreen(
     searchViewModel: SearchViewModel,
     homeViewModel: HomeViewModel
 ) {
-    var user by remember { mutableStateOf(Firebase.auth.currentUser) }
+    val user by remember { mutableStateOf(Firebase.auth.currentUser) }
     var readingList by remember {
         mutableStateOf(mutableListOf<Book>())
     }
@@ -99,53 +84,16 @@ fun HomeScreen(
         mutableStateOf(true)
     }
 
-    // Get books in the reading now shelf
     readingList = homeViewModel.getBooksInReadingList(
         userId = userId,
         context = context,
         onDone = { loading = false }
     )
     val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.account)
-
-    var avatar: Bitmap = bitmap
-
-    // Retrieve avatar from dataStore is user has set any
-    val imageDataStore = StoreProfileImage(context)
-    val session = StoreSession(context)
-    val imagePath = imageDataStore.getImagePath.collectAsState(initial = "").value
-
-    if (imagePath != "") {
-        val imageUri = Uri.parse(imagePath)
-
-        if (!session.isFirstTime) {
-            try {
-                // convert imageUri to bitmap
-                imageUri?.let {
-                    val source = ImageDecoder
-                        .createSource(context.contentResolver, it)
-                    avatar = ImageDecoder.decodeBitmap(source)
-                }
-            } catch (e: Exception) {
-                Log.e("HomeScreen", "Failed to fetch stored profile Image: ${e.message}")
-            }
-        }
-    }
-
+    val avatar: Bitmap = bitmap
     val scope = rememberCoroutineScope()
-    // Retrieve user name from dataStore
     val nameDataStore = StoreUserName(context)
-    val launcher: ManagedActivityResultLauncher<Intent, ActivityResult> =
-        rememberFirebaseAuthLauncher(
-            onAuthComplete = { result ->
-                user = result.user
-                scope.launch {
-                    user?.displayName?.let { nameDataStore.saveName(it) }
-                }
-            },
-            onAuthError = {
-                user = null
-            }
-        )
+
     if (user == null) {
         LoginScreen(navController, loginViewModel, nameDataStore)
     } else {
@@ -156,19 +104,11 @@ fun HomeScreen(
             avatar = avatar,
             navController = navController,
             searchViewModel = searchViewModel,
-            imageDataStore = imageDataStore,
-            session = session,
             reading = readingList.reversed(),
             loading = loading
         )
     }
 }
-
-/**
- * A composable function that displays the home screen for the user, including a drawer that contains
- * the options to log out, delete the account, and open the user settings. This composable function
- * takes several parameters to display user data and allow the user to interact with the app.
- */
 
 @Composable
 fun HomeContent(
@@ -177,8 +117,6 @@ fun HomeContent(
     avatar: Bitmap,
     navController: NavController,
     searchViewModel: SearchViewModel,
-    imageDataStore: StoreProfileImage,
-    session: StoreSession,
     reading: List<Book>,
     loading: Boolean
 ) {
@@ -195,63 +133,23 @@ fun HomeContent(
     val readingBooksTotal = reading.size
     val scope = rememberCoroutineScope()
     val items = mapOf(
-        // "Settings" to R.drawable.settings,
-        "Log Out" to R.drawable.logout,
-        "Delete Account" to R.drawable.delete
+        "Log Out" to R.drawable.logout
+//        "Delete Account" to R.drawable.delete
     )
     val selectedItem = remember { mutableStateOf(items["Log Out"]) }
     var openDialog by remember {
         mutableStateOf(false)
     }
 
-    var imageUri by remember {
-        mutableStateOf<Uri?>(null)
-    }
-    val context = LocalContext.current
     val bitmap = remember {
-        mutableStateOf<Bitmap>(avatar)
-    }
-    // Retrieve an image from the device gallery
-    val launcher = rememberLauncherForActivityResult(
-        contract =
-        ActivityResultContracts.OpenDocument()
-    ) { uri: Uri? ->
-        // take a persistable URI permission to access the content of the URI outside of the scope of app's process
-        val contentResolver = context.contentResolver
-        if (uri != null) {
-            try {
-                contentResolver.takePersistableUriPermission(
-                    uri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )
-            } catch (e: SecurityException) {
-                Toast.makeText(
-                    context,
-                    "Failed to take permission: ${e.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-        imageUri = uri
-    }
-
-    imageUri?.let {
-        val source = ImageDecoder
-            .createSource(context.contentResolver, it)
-        bitmap.value = ImageDecoder.decodeBitmap(source)
-        // Update user profile image on dataStore and set firstSession to false
-        scope.launch {
-            val path = imageUri ?: return@launch
-            imageDataStore.saveImagePath(path)
-            session.setIsFirstTimeLaunch(false)
-        }
+        mutableStateOf(avatar)
     }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
-                modifier = Modifier.width(300.dp),
+                modifier = Modifier.width(250.dp),
                 drawerShape = RectangleShape,
                 drawerContainerColor = MaterialTheme.colorScheme.background,
                 drawerTonalElevation = 0.dp,
@@ -274,53 +172,19 @@ fun HomeContent(
                                     top.linkTo(parent.top)
                                     start.linkTo(parent.start)
                                 }
-                                .clickable(onClick = {
-                                    launcher.launch(arrayOf("image/*"))
-                                }),
+                                .clickable(onClick = {}),
                             shape = CircleShape,
                         ) {
-                            val image = if (session.isFirstTime) {
-                                bitmap.value
-                            } else {
-                                avatar
-                            }
+                            val image = bitmap.value
                             Image(
                                 bitmap = image.asImageBitmap(),
                                 contentDescription = "Profile Picture",
                                 modifier = Modifier
                                     .clip(CircleShape)
-                                    .clickable(onClick = {
-                                        launcher.launch(arrayOf("image/*"))
-                                    }),
+                                    .clickable(onClick = {}),
                                 contentScale = ContentScale.Crop
                             )
                         }
-                        Surface(
-                            modifier = Modifier
-                                .size(25.dp)
-                                // Clip image to be shaped as a circle
-                                .clip(CircleShape)
-                                .constrainAs(edit) {
-                                    top.linkTo(profile.bottom)
-                                    end.linkTo(profile.absoluteRight)
-                                    baseline.linkTo(profile.baseline)
-                                    bottom.linkTo(profile.bottom)
-                                }
-                                .clickable(onClick = {
-                                    launcher.launch(arrayOf("image/*"))
-                                }),
-                            color = MaterialTheme.colorScheme.primary,
-                            shape = CircleShape,
-                            border = BorderStroke(width = 1.dp, color = Color.White)
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.pen),
-                                contentDescription = "Update Profile Picture",
-                                modifier = Modifier
-                                    .padding(3.dp)
-                            )
-                        }
-
                     }
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
@@ -354,12 +218,14 @@ fun HomeContent(
                             openDialog = openDialog,
                             drawable = R.mipmap.ic_book,
                             size = 50.dp,
-                            color = White,
+                            color = Color.Transparent,
                             title = if (selectedKey == "Log Out") {
                                 "Confirm Logout"
-                            } else {
+                            }
+                            else {
                                 "Delete Account"
                             },
+
                             details = if (selectedKey == "Log Out") {
                                 "Do you want to Logout ?"
                             } else {
@@ -421,7 +287,8 @@ fun HomeContent(
                             selected = item.value == selectedItem.value,
                             onClick = {
                                 selectedItem.value = item.value
-                                if (item.key == "Log Out" || item.key == "Delete Account") {
+//                                if (item.key == "Log Out" || item.key == "Delete Account") {
+                                if (item.key == "Log Out" ) {
                                     openDialog = true
                                 }
                             },
@@ -447,13 +314,58 @@ fun HomeContent(
                         .padding(top = 20.dp, bottom = 20.dp),
                     verticalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    TopHeader(navController, searchViewModel, avatar = avatar) {
+                    HomeTopHeader(navController, searchViewModel, avatar = avatar) {
                         scope.launch {
                             drawerState.open()
                         }
                     }
-                    MainCard(currentRead, navController, readingList = reading)
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 2.dp),
+                        color = Gray200
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()){
+                            Text(
+                                "Welcome back, ${name?.substringBefore(" ")}!",
+                                fontFamily = poppinsFamily,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 15.sp,
+                                color = Black,
+                                modifier = Modifier.padding(top = 10.dp, start = 20.dp, end = 20.dp)
+                            )
+                            Text(
+                            "What do you want to read today?",
+                            fontFamily = poppinsFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 19.sp,
+                            color = Black,
+                            modifier = Modifier.padding(top = 10.dp, start = 20.dp, end = 20.dp)
+                        )
+                                }
+                    }
+
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 2.dp),
+                        color = Gray200
+                    )
+
                     Categories(navController = navController)
+
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 2.dp),
+                        color = Gray200
+                    )
                     ReadingList(
                         navController,
                         loading = loading,
@@ -469,17 +381,10 @@ fun HomeContent(
 }
 
 /**
- * A composable function that displays the top header of a bookshelf app with a profile picture
- * and a search button. Clicking on the profile picture opens the user's profile, and clicking
- * on the search button navigates to the search screen.
- *
- * @param navController The NavController object used to navigate between different screens.
- * @param viewModel The searchViewModel object that contains the state of the search screen.
- * @param avatar The Bitmap object that represents the user's profile picture.
- * @param onProfileClick A lambda function that is executed when the user clicks on the profile picture.
+ * HomeTopHeader: contains the user's profile picture and a search icon that navigates to the search screen.
  */
 @Composable
-fun TopHeader(
+fun HomeTopHeader(
     navController: NavController,
     searchViewModel: SearchViewModel,
     avatar: Bitmap,
@@ -516,6 +421,7 @@ fun TopHeader(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
+                    .background(Color.Transparent)
                     .clickable(enabled = true, onClick = {
                         searchViewModel.loading.value = false
                         searchViewModel.listOfBooks.value = listOf()
@@ -525,7 +431,7 @@ fun TopHeader(
                 color = Color.Transparent,
                 border = BorderStroke(
                     width = 0.9.dp,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             ) {
                 Image(
@@ -544,164 +450,49 @@ fun TopHeader(
 }
 
 /**
-
- * A composable function that creates a main card UI element.
- * The card displays an image with the title "Track your reading activity" and a book with a title and a "Continue reading" text.
- */
-@Composable
-fun MainCard(currentRead: Book, navController: NavController, readingList: List<Book>) {
-    var loading by remember {
-        mutableStateOf(false)
-    }
-    if (readingList.isEmpty()) {
-        loading = false
-    }
-    Card(
-        modifier = Modifier.padding(start = 20.dp, end = 20.dp),
-        shape = RoundedCornerShape(20.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.card),
-                contentDescription = null,
-                modifier = Modifier.matchParentSize(),
-                contentScale = ContentScale.Crop
-            )
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    "Track your", fontFamily = poppinsFamily,
-                    fontSize = 23.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(top = 10.dp)
-                )
-                Text(
-                    "reading activity", fontFamily = poppinsFamily,
-                    fontSize = 23.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    textAlign = TextAlign.Center
-                )
-                Box(
-                    modifier = Modifier
-                        .padding(15.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.secondary,
-                            shape = RoundedCornerShape(15.dp)
-
-                        )
-                        .clickable(onClick = {
-                            navController.navigate(GoodbooksDestinations.DETAIL_ROUTE+ "/${currentRead.bookID}")
-                        }),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(10.dp),
-                        horizontalArrangement = Arrangement.Start,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (loading) {
-                            androidx.compose.material.CircularProgressIndicator(color = Color.White)
-                        }
-                        Surface(
-                            modifier = Modifier
-                                .size(50.dp)
-                                .background(color = Color.Transparent, shape = CircleShape),
-                            shape = RectangleShape,
-                            border = BorderStroke(
-                                width = 0.dp,
-                                color = Green
-                            ),
-                            color = Green
-                        ) {
-                            AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(
-                                        currentRead.imageLinks.thumbnail?.replace(
-                                            "http",
-                                            "https"
-                                        )
-                                    )
-                                    .build(),
-                                contentDescription = "Book Image",
-                                contentScale = ContentScale.Fit,
-                                onLoading = {
-                                    loading = true
-                                },
-                                onSuccess = {
-                                    loading = false
-                                }
-                            )
-                        }
-                        if (!loading && readingList.isNotEmpty()) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(start = 10.dp, end = 10.dp)
-                            ) {
-                                Text(
-                                    currentRead.title,
-                                    fontFamily = poppinsFamily,
-                                    fontSize = 15.sp,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White.copy(alpha = 0.8f)
-                                )
-                                Text(
-                                    "Continue reading", fontFamily = poppinsFamily,
-                                    fontSize = 12.sp,
-                                    color = Color.White.copy(alpha = 0.8f)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-/**
  * A composable function that displays a list of categories using a LazyRow layout. Each category is
  * represented by a Category composable that is clickable and navigates to the corresponding screen.
  * @param navController The NavController used for navigating between screens.
  */
 @Composable
 fun Categories(navController: NavController) {
-    Text(
-        "Categories",
-        fontFamily = poppinsFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 16.sp,
-        color = Black,
-        modifier = Modifier.padding(top = 10.dp, start = 20.dp, end = 20.dp)
-    )
-    val keysList = categories.keys.toList()
-    LazyRow(
-        modifier = Modifier.padding(bottom = 10.dp, end = 0.dp, start = 0.dp),
-        horizontalArrangement = Arrangement.spacedBy(30.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 10.dp, bottom = 5.dp),
+        verticalArrangement = Arrangement.SpaceEvenly
     ) {
-        itemsIndexed(items = keysList) { index: Int, item: String ->
-            if (index == 0) {
-                Spacer(modifier = Modifier.width(20.dp))
-                categories[item]?.let {
+        Text(
+            "Categories",
+            fontFamily = poppinsFamily,
+            fontWeight = FontWeight.Medium,
+            fontSize = 16.sp,
+            color = Black,
+            modifier = Modifier.padding(top = 10.dp, start = 20.dp, end = 20.dp)
+        )
+
+        Spacer(modifier = Modifier.height(3.dp))
+
+        val keysList = categories.keys.toList()
+        LazyRow(
+            modifier = Modifier.padding(bottom = 10.dp, end = 0.dp, start = 0.dp),
+            horizontalArrangement = Arrangement.spacedBy(30.dp)
+        ) {
+            itemsIndexed(items = keysList) { index: Int, item: String ->
+                if (index == 0) {
+                    Spacer(modifier = Modifier.width(20.dp))
+                    categories[item]?.let {
+                        Category(
+                            category = item,
+                            image = it,
+                            onClick = { navController.navigate(route = GoodbooksDestinations.CATEGORY_ROUTE + "/$item") })
+                    }
+                } else {
                     Category(
                         category = item,
-                        image = it,
+                        image = categories[item]!!,
                         onClick = { navController.navigate(route = GoodbooksDestinations.CATEGORY_ROUTE + "/$item") })
                 }
-            } else {
-                Category(
-                    category = item,
-                    image = categories[item]!!,
-                    onClick = { navController.navigate(route = GoodbooksDestinations.CATEGORY_ROUTE + "/$item") })
             }
         }
     }

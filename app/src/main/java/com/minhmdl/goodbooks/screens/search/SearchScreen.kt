@@ -1,18 +1,28 @@
 package com.minhmdl.goodbooks.screens.search
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.*
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,110 +32,32 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.ktx.Firebase
 import com.grayseal.bookshelf.ui.theme.poppinsFamily
 import com.minhmdl.goodbooks.navigation.GoodbooksDestinations
 import com.minhmdl.goodbooks.ui.theme.Black
 import com.minhmdl.goodbooks.ui.theme.GreenIndicator
-import com.minhmdl.goodbooks.utils.HistoryCard
-import com.minhmdl.goodbooks.utils.SearchCard
+import com.minhmdl.goodbooks.utils.BookListItem
 import com.minhmdl.goodbooks.utils.SearchInputField
-import com.minhmdl.goodbooks.utils.convertToMutableList
 
-
-/**
-A composable function that displays the Search Screen where users can search for books, display their recent search history
- * and see the results of their search.
- */
 @Composable
 fun SearchScreen(
     navController: NavController,
     searchViewModel: SearchViewModel
 ) {
-    val userId = Firebase.auth.currentUser?.uid
-
-    val previousSearches: MutableList<String> by remember {
-        mutableStateOf(mutableListOf())
-    }
-
-    var displayPreviousHistory by remember {
-        mutableStateOf(false)
-    }
-
-    if (userId != null) {
-        val db = FirebaseFirestore.getInstance().collection("users").document(userId).get()
-        db.addOnSuccessListener {
-            val data = db.result.get("searchHistory")
-            if (data != null) {
-                for (i in data as MutableList<*>) {
-                    previousSearches.add(i as String)
-                }
-                displayPreviousHistory = previousSearches.isNotEmpty()
-            }
-        }
-    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(20.dp)
+            .padding(10.dp)
     ) {
         Search(navController = navController, searchViewModel = searchViewModel) { query ->
             searchViewModel.loading.value = true
             searchViewModel.searchBooks(query)
-
-            if (userId != null) {
-                val db = FirebaseFirestore.getInstance().collection("users").document(userId).get()
-                db.addOnSuccessListener {
-                    val data = db.result.get("searchHistory")
-                    val response = convertToMutableList(data)
-                    response?.add(query)
-                    FirebaseFirestore.getInstance().collection("users").document(userId)
-                        .update("searchHistory", response)
-                }
-            }
         }
-        if (displayPreviousHistory) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    "Recent Searches",
-                    fontSize = 13.sp,
-                    fontFamily = poppinsFamily,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 10.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    val lastThree = if (previousSearches.size >= 4) {
-                        previousSearches.subList(previousSearches.size - 3, previousSearches.size)
-                    } else {
-                        previousSearches
-                    }
-                    val items = lastThree.toSet().toList().asReversed()
-                    items.forEach {
-                        if (it != "") {
-                            HistoryCard(text = it, onClick = {
-                                searchViewModel.loading.value = true
-                                searchViewModel.searchBooks(it)
-                            })
-                        }
-                    }
-                }
-            }
-        }
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(5.dp))
         Results(searchViewModel = searchViewModel, navController = navController)
     }
 }
-
-/**
-Composable function that displays the search UI.
- */
 
 @Composable
 fun Search(
@@ -162,7 +94,7 @@ fun Search(
         )
 
     }
-    Spacer(modifier = Modifier.height(30.dp))
+    Spacer(modifier = Modifier.height(10.dp))
     Row(modifier = Modifier.fillMaxWidth()) {
         SearchInputField(
             valueState = searchState,
@@ -173,15 +105,11 @@ fun Search(
                 if (!valid) return@KeyboardActions
                 onSearch(searchState.value.trim())
                 keyboardController?.hide()
-                searchState.value = ""
             }
         )
     }
 }
 
-/**
-A composable function that displays the search results obtained by querying the Google Books API.
- */
 @Composable
 fun Results(searchViewModel: SearchViewModel, navController: NavController) {
 
@@ -202,34 +130,37 @@ fun Results(searchViewModel: SearchViewModel, navController: NavController) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            LinearProgressIndicator(color=GreenIndicator)
+            LinearProgressIndicator(color = GreenIndicator)
         }
     }
 
     if (!(loading || searchResults.e != null || searchResults.data == null)) {
-        Spacer(modifier = Modifier.height(15.dp))
+        Spacer(modifier = Modifier.height(10.dp))
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(15.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            // Define constants for default values
+            val DEFAULT_TITLE = "Title information unavailable"
+            val DEFAULT_AUTHOR = "Author names not on record"
+            val DEFAULT_IMAGE_URL = "https://media.istockphoto.com/id/1147544807/vector/thumbnail-image-vector-graphic.jpg?s=612x612&w=0&k=20&c=rnCKVbdxqkjlcs3xH87-9gocETqpspHFXu5dIGB4wuM="
+
             items(items = listOfBooks) { item ->
-                var title = "Title information unavailable"
-                var author = "Author names not on record"
-                var imageUrl =
-                    "https://media.istockphoto.com/id/1147544807/vector/thumbnail-image-vector-graphic.jpg?s=612x612&w=0&k=20&c=rnCKVbdxqkjlcs3xH87-9gocETqpspHFXu5dIGB4wuM="
-                if (item.imageLinks.toString().isNotEmpty()) {
-                    imageUrl = item.imageLinks.thumbnail.toString().trim()
-                    imageUrl = imageUrl.replace("http", "https")
+                var title = DEFAULT_TITLE
+                var author = DEFAULT_AUTHOR
+                var imageUrl = DEFAULT_IMAGE_URL
+                if (item.imageLinks.toString().isNotBlank()) {
+                    imageUrl = item.imageLinks.thumbnail.toString().trim().replace("http", "https")
                 }
-                if (item.title.isNotEmpty()) {
+                if (item.title.isNotBlank()) {
                     title = item.title
                 }
-                if (item.authors[0].isNotEmpty()) {
+                if (!item.authors.firstOrNull().isNullOrBlank()) {
                     author = item.authors.joinToString(separator = ", ")
                 }
                 val bookId = item.bookID
-                SearchCard(
+                BookListItem(
                     bookTitle = title,
                     bookAuthor = author,
                     imageUrl = imageUrl,

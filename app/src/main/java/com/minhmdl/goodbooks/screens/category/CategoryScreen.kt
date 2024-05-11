@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -34,7 +35,7 @@ fun CategoryScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(20.dp)
+            .padding(10.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -42,8 +43,8 @@ fun CategoryScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Rounded.Close,
-                contentDescription = "Close Icon",
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "",
                 modifier = Modifier
                     .size(35.dp)
                     .clip(CircleShape)
@@ -66,7 +67,7 @@ fun CategoryScreen(
             viewModel.loading.value = true
             viewModel.searchBooks(category)
         }
-        HorizontalDivider(modifier = Modifier.fillMaxWidth().padding(top = 10.dp), color = Gray200)
+        Spacer(modifier = Modifier.height(15.dp))
         Results(navController = navController, searchViewModel = viewModel)
     }
 }

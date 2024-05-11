@@ -15,7 +15,6 @@ import com.minhmdl.goodbooks.model.User
 class HomeViewModel : ViewModel() {
     var books: MutableState<MutableList<Book>> = mutableStateOf(mutableListOf())
 
-    // suspend function to get book in the reading list
     fun getBooksInReadingList(
         userId: String?,
         context: Context,

@@ -1,20 +1,60 @@
 package com.minhmdl.goodbooks.utils
 
-import android.R.attr.name
-import android.content.res.Configuration.UI_MODE_NIGHT_NO
-import androidx.compose.foundation.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material.icons.rounded.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.outlined.InsertEmoticon
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.SentimentSatisfied
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material.icons.rounded.AlternateEmail
+import androidx.compose.material.icons.rounded.ArrowForward
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.StarHalf
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemColors
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,7 +77,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.grayseal.bookshelf.ui.theme.poppinsFamily
@@ -579,16 +618,7 @@ fun NavBar(navController: NavController) {
             route = GoodbooksDestinations.DETAIL_ROUTE,
             icon = R.drawable.shelves,
          ),
-//        BottomNavItem(
-//            name = "Favourites",
-//            route = GoodbooksDestinations.FAVOURITE_ROUTE,
-//            icon = R.drawable.favourite,
-//        ),
-//        BottomNavItem(
-//            name = "Reviews",
-//            route = GoodbooksDestinations.REVIEW_ROUTE,
-//            icon = R.drawable.reviews,
-//        ),
+
     )
 
     val backStackEntry = navController.currentBackStackEntryAsState()
@@ -671,6 +701,15 @@ fun SearchInputField(
                 colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
             )
         },
+        trailingIcon = {
+                       IconButton(onClick = { valueState.value = ""}){
+                           Icon(
+                               imageVector = Icons.Rounded.Close,
+                               contentDescription = "Clear",
+                               tint = MaterialTheme.colorScheme.onBackground
+                           )
+                       }
+        },
         singleLine = isSingleLine,
         textStyle = TextStyle(fontSize = 15.sp, fontFamily = poppinsFamily),
         enabled = enabled,
@@ -707,15 +746,13 @@ Clicking the card triggers the onClick function.
  */
 
 @Composable
-fun SearchCard(
+fun BookListItem(
     bookTitle: String,
     bookAuthor: String,
     imageUrl: String,
     onClick: () -> Unit
 ) {
-    HorizontalDivider(modifier = Modifier
-        .fillMaxWidth()
-        .padding(top = 1.dp), color = Gray200)
+    Spacer(modifier = Modifier.height(5.dp))
     Surface(
         modifier = Modifier
             .clickable(onClick = onClick)
@@ -727,98 +764,66 @@ fun SearchCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 15.dp, horizontal = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                .padding(vertical = 10.dp, horizontal = 5.dp),
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(imageUrl)
+                    .error(R.drawable.cover_not_available)
                     .build(),
                 contentDescription = "Book Image",
                 contentScale = ContentScale.FillHeight,
-                modifier = Modifier.size(150.dp),
+                modifier = Modifier.size(130.dp),
             )
-            Column {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp, horizontal = 5.dp)
+                    .offset(y= (-10).dp),
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+                horizontalAlignment = Alignment.Start
+            ) {
                 Text(
                     bookTitle,
                     overflow = TextOverflow.Ellipsis,
                     fontFamily = poppinsFamily,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp,
-                    maxLines = 1,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 14.sp,
+                    maxLines = 2,
+                    minLines = 1,
                     color = MaterialTheme.colorScheme.onBackground,
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically)
-                {
-                    Text(
-                        "by ",
-                        overflow = TextOverflow.Clip,
-                        fontFamily = poppinsFamily,
-                        fontSize = 14.sp,
-                        maxLines = 1,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
-                    )
-                    Text(
-                        bookAuthor,
-                        overflow = TextOverflow.Clip,
-                        fontFamily = poppinsFamily,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 15.sp,
-                        maxLines = 1,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
-                    )
-                }
+                Text(
+                    bookAuthor,
+                    overflow = TextOverflow.Clip,
+                    fontFamily = poppinsFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
+                    maxLines = 1,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
+                )
             }
         }
     }
-    HorizontalDivider(modifier = Modifier
-        .fillMaxWidth()
-        .padding(top = 1.dp), color = Gray200)
+    HorizontalDivider(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp),
+        color = Gray200
+    )
 }
 
 @Preview
 @Composable
-fun SearchCardPreview() {
-    SearchCard(
-        bookTitle = "The Great Gatsby",
+fun BookListItemPreview() {
+    BookListItem(
+        bookTitle = "The Complete sherlock Holmes: Volume II",
         bookAuthor = "F. Scott Fitzgerald",
-        imageUrl = "https://images-na.ssl-images-amazon.com/images/I/51ZJ2qJ3F-L._SX331_BO1,204,203,200_.jpg",
+        imageUrl = "https://m.media-amazon.com/images/I/81QuEGw8VPL._AC_UF1000,1000_QL80_.jpg",
         onClick = {}
     )
-}
-
-/**
-Composable function that displays a history card.
- */
-
-@Composable
-fun HistoryCard(text: String, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .height(35.dp)
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = Yellow),
-        elevation = CardDefaults.cardElevation(0.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(5.dp),
-        ) {
-            Text(
-                text = if (text.length > 15) text.substring(0, 15) + "..." else text,
-                overflow = TextOverflow.Ellipsis,
-                fontFamily = poppinsFamily,
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier = Modifier.padding(start = 4.dp, end = 4.dp),
-                textAlign = TextAlign.Center
-            )
-        }
-    }
 }
 
 /**
@@ -880,10 +885,10 @@ fun ShelvesAlertDialog(
                 TextButton(onClick = onClick) {
                     Text(
                         "Confirm",
-                        fontSize = 15.sp,
+                        fontSize = 16.sp,
                         fontFamily = poppinsFamily,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Red
                     )
                 }
             },
@@ -891,10 +896,10 @@ fun ShelvesAlertDialog(
                 TextButton(onClick = onDismiss) {
                     Text(
                         "Cancel",
-                        fontSize = 15.sp,
+                        fontSize = 16.sp,
                         fontFamily = poppinsFamily,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary
+                        fontWeight = FontWeight.Bold,
+                        color = Black
                     )
                 }
             }

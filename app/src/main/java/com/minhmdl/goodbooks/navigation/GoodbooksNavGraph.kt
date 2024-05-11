@@ -1,13 +1,8 @@
 package com.minhmdl.goodbooks.navigation
 
 
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -15,9 +10,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import androidx.navigation.navigation
 import com.minhmdl.goodbooks.data.StoreUserName
 import com.minhmdl.goodbooks.screens.SplashScreen
 import com.minhmdl.goodbooks.screens.book.BookScreen
@@ -32,8 +31,6 @@ import com.minhmdl.goodbooks.screens.register.RegisterViewModel
 import com.minhmdl.goodbooks.screens.search.SearchScreen
 import com.minhmdl.goodbooks.screens.search.SearchViewModel
 import com.minhmdl.goodbooks.screens.shelf.ShelfViewModel
-import dagger.hilt.android.lifecycle.HiltViewModel
-
 import kotlinx.coroutines.CoroutineScope
 
 
