@@ -1,13 +1,8 @@
 package com.minhmdl.goodbooks.navigation
 
 
-import androidx.compose.material3.DrawerState
-import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -30,23 +25,17 @@ import com.minhmdl.goodbooks.screens.register.RegisterScreen
 import com.minhmdl.goodbooks.screens.register.RegisterViewModel
 import com.minhmdl.goodbooks.screens.search.SearchScreen
 import com.minhmdl.goodbooks.screens.search.SearchViewModel
+import com.minhmdl.goodbooks.screens.shelf.ShelfScreen
 import com.minhmdl.goodbooks.screens.shelf.ShelfViewModel
-import kotlinx.coroutines.CoroutineScope
 
 
 @Composable
 fun GoodbooksNavGraph() {
+
     val navController: NavHostController = rememberNavController()
-    val coroutineScope: CoroutineScope = rememberCoroutineScope()
-    val drawerState: DrawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val startDestination: String = GoodbooksDestinations.SPLASH_ROUTE
-    val navActions: GoodbooksNavigationActions = remember(navController) {
-        GoodbooksNavigationActions(navController)
-    }
-    val currentNavBackStackEntry by navController.currentBackStackEntryAsState()
+
     val searchViewModel: SearchViewModel = viewModel()
     val shelfViewModel: ShelfViewModel = viewModel()
-    val currentRoute = currentNavBackStackEntry?.destination?.route ?: startDestination
     val loginViewModel: LoginViewModel = viewModel()
     val homeViewModel: HomeViewModel = viewModel()
     val bookViewModel: BookViewModel = viewModel()
@@ -54,7 +43,7 @@ fun GoodbooksNavGraph() {
     val context = LocalContext.current
     val registerViewModel: RegisterViewModel = viewModel()
     val dataStore: StoreUserName = StoreUserName(context)
-    NavHost(navController = navController, startDestination = GoodbooksDestinations.HOME_ROUTE) {
+    NavHost(navController = navController, startDestination = GoodbooksDestinations.SPLASH_ROUTE) {
         composable(GoodbooksDestinations.SPLASH_ROUTE) {
             SplashScreen(navController = navController)
         }
@@ -67,7 +56,9 @@ fun GoodbooksNavGraph() {
         composable(GoodbooksDestinations.HOME_ROUTE) {
             HomeScreen(navController = navController, loginViewModel=loginViewModel, homeViewModel = homeViewModel, searchViewModel = searchViewModel)
         }
-
+        composable(GoodbooksDestinations.SHELF_ROUTE){
+            ShelfScreen(navController = navController, shelfViewModel = shelfViewModel)
+        }
         val bookRoute = GoodbooksDestinations.DETAIL_ROUTE
         composable("$bookRoute/{bookId}", arguments = listOf(navArgument(name = "bookId") {
             type = NavType.StringType})) { navBack ->

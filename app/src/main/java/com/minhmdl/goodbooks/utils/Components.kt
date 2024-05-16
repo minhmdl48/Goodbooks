@@ -5,23 +5,28 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSizeIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.InsertEmoticon
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.SentimentSatisfied
@@ -36,6 +41,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -43,7 +50,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemColors
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -63,6 +70,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -77,6 +85,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.grayseal.bookshelf.ui.theme.poppinsFamily
@@ -407,13 +416,13 @@ fun Category(category: String, image: Int, onClick: () -> Unit) {
         Surface(
             modifier = Modifier
                 .size(50.dp)
-                .background(color = MaterialTheme.colorScheme.secondary, shape = CircleShape)
+                .background(color = MaterialTheme.colorScheme.onPrimary, shape = CircleShape)
                 .clickable(onClick = onClick),
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.secondary
+            color = MaterialTheme.colorScheme.onPrimary
         ) {
             Image(
                 painter = painterResource(id = image),
+                modifier = Modifier.background(color = MaterialTheme.colorScheme.onPrimary, shape = CircleShape),
                 contentDescription = "Category"
             )
         }
@@ -427,6 +436,11 @@ fun Category(category: String, image: Int, onClick: () -> Unit) {
     }
 }
 
+@Preview
+@Composable
+fun CategoryPreview() {
+    Category("Fiction", R.drawable.finance) {}
+}
 /**
 A Composable function that displays a book with its author and image.
 
@@ -609,71 +623,83 @@ selectedItem variable is updated to reflect the new selection.
 fun NavBar(navController: NavController) {
     val items = listOf(
         BottomNavItem(
-            name = "Home",
+            name = stringResource(id = R.string.nav_home),
             route = GoodbooksDestinations.HOME_ROUTE,
-            icon = R.drawable.home,
+            selectedIcon = R.drawable.ic_home_selected,
+            unselectedIcon = R.drawable.ic_home_unselected
         ),
         BottomNavItem(
-            name = "My Books",
+            name = stringResource(id = R.string.nav_mybooks),
             route = GoodbooksDestinations.DETAIL_ROUTE,
-            icon = R.drawable.shelves,
-         ),
+            selectedIcon = R.drawable.ic_shelf_selected,
+            unselectedIcon = R.drawable.ic_shelf_unselected
+        ),
+        BottomNavItem(
+            name = stringResource(id = R.string.nav_search),
+            route = GoodbooksDestinations.SEARCH_ROUTE,
+            selectedIcon = R.drawable.ic_search,
+            unselectedIcon = R.drawable.ic_search
+        )
 
     )
 
     val backStackEntry = navController.currentBackStackEntryAsState()
-
-    // Extract colors from MaterialTheme.colorScheme
-    val primaryColor = Black
-    val onSurfaceColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-    val surfaceColor = MaterialTheme.colorScheme.surface
-
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.background,
-        tonalElevation = 0.dp,
-        modifier = Modifier.height(IntrinsicSize.Min)
+    val onSurfaceColor = MaterialTheme.colorScheme.onSurfaceVariant
+    Surface(
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.fillMaxWidth()
     ) {
-        items.forEach { item ->
-            val selected = item.route == backStackEntry.value?.destination?.route
-            NavigationBarItem(
-                icon = {
-                    Icon(
-                        painter = painterResource(id = item.icon),
-                        contentDescription = item.name,
-                        modifier = Modifier
-                            .size(30.dp)
-                            .background(color = Color.Transparent)
-                    )
-                },
-                label = {
-                    Text(
-                        item.name, fontFamily = poppinsFamily,
-                        fontSize = 12.sp,
-                    )
-                },
-                selected = selected,
-                onClick = {
-                    when (item.name) {
-                        "Home" -> navController.navigate(GoodbooksDestinations.HOME_ROUTE)
-                        "My Books" -> navController.navigate(GoodbooksDestinations.SHELF_ROUTE)
-                        "Favourites" -> navController.navigate(GoodbooksDestinations.FAVOURITE_ROUTE)
-                        "Reviews" -> navController.navigate(GoodbooksDestinations.REVIEW_ROUTE)
-                    }
-                },
-                colors = NavigationBarItemColors(
-                    selectedIconColor = Black,
-                    selectedTextColor = Black,
-                    unselectedTextColor = onSurfaceColor,
-                    unselectedIconColor = onSurfaceColor,
-                    disabledIconColor = Color.Gray,
-                    disabledTextColor = Color.Gray,
-                    selectedIndicatorColor = surfaceColor
-
-                ),
-                interactionSource = MutableInteractionSource()
-            )
+        NavigationBar(
+            containerColor = Color(0xFFF7F6F0),
+            tonalElevation = 0.dp,
+            modifier = Modifier.height(IntrinsicSize.Min)
+        ) {
+            items.forEach { item ->
+                val selected = item.route == backStackEntry.value?.destination?.route
+                NavigationBarItem(
+                    icon = {
+                        Icon(
+                            painter = if (selected) {
+                                painterResource(id = item.selectedIcon)
+                            } else {
+                                painterResource(id = item.unselectedIcon)
+                            },
+                            contentDescription = item.name,
+                            modifier = Modifier
+                                .size(30.dp)
+                                .background(color = Color.Transparent)
+                        )
+                    },
+                    label = {
+                        Text(
+                            item.name, fontFamily = poppinsFamily,
+                            fontSize = 13.sp,
+                        )
+                    },
+                    selected = selected,
+                    onClick = {
+                        when (item.name) {
+                            "Home" -> navController.navigate(GoodbooksDestinations.HOME_ROUTE)
+                            "My Books" -> navController.navigate(GoodbooksDestinations.SHELF_ROUTE)
+                            "Search" -> navController.navigate(GoodbooksDestinations.SEARCH_ROUTE)
+                            "Reviews" -> navController.navigate(GoodbooksDestinations.REVIEW_ROUTE)
+                        }
+                    },
+//                       colors = NavigationBarItemColors(
+//                            iconColor = if (selected) MaterialTheme.colorScheme.primary else onSurfaceColor,
+//                            labelColor = if (selected) MaterialTheme.colorScheme.primary else onSurfaceColor
+//                        ),
+                    interactionSource = MutableInteractionSource()
+                )
+            }
         }
     }
+}
+
+@Preview
+@Composable
+fun NavBarPreview() {
+    NavBar(navController = rememberNavController())
 }
 
 @Composable
@@ -702,13 +728,13 @@ fun SearchInputField(
             )
         },
         trailingIcon = {
-                       IconButton(onClick = { valueState.value = ""}){
-                           Icon(
-                               imageVector = Icons.Rounded.Close,
-                               contentDescription = "Clear",
-                               tint = MaterialTheme.colorScheme.onBackground
-                           )
-                       }
+            IconButton(onClick = { valueState.value = "" }) {
+                Icon(
+                    imageVector = Icons.Rounded.Close,
+                    contentDescription = "Clear",
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+            }
         },
         singleLine = isSingleLine,
         textStyle = TextStyle(fontSize = 15.sp, fontFamily = poppinsFamily),
@@ -781,7 +807,7 @@ fun BookListItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 10.dp, horizontal = 5.dp)
-                    .offset(y= (-10).dp),
+                    .offset(y = (-10).dp),
                 verticalArrangement = Arrangement.spacedBy(5.dp),
                 horizontalAlignment = Alignment.Start
             ) {
@@ -824,6 +850,90 @@ fun BookListItemPreview() {
         imageUrl = "https://m.media-amazon.com/images/I/81QuEGw8VPL._AC_UF1000,1000_QL80_.jpg",
         onClick = {}
     )
+}
+
+@Composable
+fun MenuSample() {
+    var expanded by remember { mutableStateOf(false) }
+    val menuItems = listOf(
+        "Want to Read",
+        "Currently Reading",
+        "Read",
+    )
+    var selectedItemIndex by remember { mutableStateOf(0) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .wrapContentSize(Alignment.TopStart)
+    ) {
+
+        OutlinedCard(modifier = Modifier.padding(15.dp)) {
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .width(125.dp)
+                    .height(50.dp)
+                    .padding(3.dp)
+                    .clickable {
+                        expanded = true
+                    }
+            ) {
+                Text(
+                    text = menuItems[selectedItemIndex],
+                    fontFamily = poppinsFamily,
+                    fontSize = 13.sp
+
+                )
+                Image(
+                    painter = painterResource(id = R.drawable.baseline_arrow_drop_down_24),
+                    colorFilter = ColorFilter.tint(Color.Black),
+                    contentDescription = "Arrow drop down"
+
+                )
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.requiredSizeIn(maxHeight = 300.dp)
+            ) {
+                menuItems.forEachIndexed { index, item ->
+                    DropdownMenuItem(
+                        text = { Text(text = item) },
+                        onClick = {
+                            expanded = false
+                            selectedItemIndex = index
+
+                        },
+                        trailingIcon = {
+                            if (selectedItemIndex == index) {
+                                Icon(
+                                    imageVector = Icons.Filled.Check,
+                                    contentDescription = "Selected Icon"
+                                )
+                            }
+                        }
+                    )
+                }
+                HorizontalDivider()
+                DropdownMenuItem(
+                    text = { Text(text = "Remove from My Books") },
+                    onClick = {
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+
+@Preview
+@Composable
+fun DropdownDemoPreview() {
+    MenuSample()
 }
 
 /**

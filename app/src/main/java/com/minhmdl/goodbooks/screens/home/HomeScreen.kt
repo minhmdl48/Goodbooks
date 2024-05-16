@@ -221,8 +221,7 @@ fun HomeContent(
                             color = Color.Transparent,
                             title = if (selectedKey == "Log Out") {
                                 "Confirm Logout"
-                            }
-                            else {
+                            } else {
                                 "Delete Account"
                             },
 
@@ -236,7 +235,7 @@ fun HomeContent(
                             },
                             onClick = {
                                 if (selectedKey == "Log Out") Firebase.auth.signOut()
-                                else{
+                                else {
                                     val db = FirebaseFirestore.getInstance()
                                     val userId = Firebase.auth.currentUser?.uid
 
@@ -244,7 +243,10 @@ fun HomeContent(
                                         db.collection("users").document(it)
                                             .delete()
                                             .addOnSuccessListener {
-                                                Log.d("HomeScreen", "User data successfully deleted!")
+                                                Log.d(
+                                                    "HomeScreen",
+                                                    "User data successfully deleted!"
+                                                )
                                             }
                                             .addOnFailureListener { e ->
                                                 Log.w("HomeScreen", "Error deleting user data", e)
@@ -288,7 +290,7 @@ fun HomeContent(
                             onClick = {
                                 selectedItem.value = item.value
 //                                if (item.key == "Log Out" || item.key == "Delete Account") {
-                                if (item.key == "Log Out" ) {
+                                if (item.key == "Log Out") {
                                     openDialog = true
                                 }
                             },
@@ -331,24 +333,33 @@ fun HomeContent(
                     ) {
                         Column(
                             modifier = Modifier
-                                .fillMaxWidth()){
+                                .fillMaxWidth()
+                        ) {
                             Text(
                                 "Welcome back, ${name?.substringBefore(" ")}!",
                                 fontFamily = poppinsFamily,
                                 fontWeight = FontWeight.Medium,
                                 fontSize = 15.sp,
                                 color = Black,
-                                modifier = Modifier.padding(top = 10.dp, start = 20.dp, end = 20.dp)
+                                modifier = Modifier.padding(
+                                    top = 10.dp,
+                                    start = 20.dp,
+                                    end = 20.dp
+                                )
                             )
                             Text(
-                            "What do you want to read today?",
-                            fontFamily = poppinsFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 19.sp,
-                            color = Black,
-                            modifier = Modifier.padding(top = 10.dp, start = 20.dp, end = 20.dp)
-                        )
-                                }
+                                "What do you want to read today?",
+                                fontFamily = poppinsFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 19.sp,
+                                color = Black,
+                                modifier = Modifier.padding(
+                                    top = 10.dp,
+                                    start = 20.dp,
+                                    end = 20.dp
+                                )
+                            )
+                        }
                     }
 
                     HorizontalDivider(
@@ -523,7 +534,7 @@ fun ReadingList(navController: NavController, loading: Boolean, readingList: Lis
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            androidx.compose.material.LinearProgressIndicator(color= GreenIndicator)
+            androidx.compose.material.LinearProgressIndicator(color = GreenIndicator)
         }
     } else {
         if (readingList.isEmpty()) {

@@ -6,18 +6,27 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.*
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.minhmdl.goodbooks.navigation.GoodbooksDestinations
+import androidx.navigation.compose.rememberNavController
 import com.minhmdl.goodbooks.R
+import com.minhmdl.goodbooks.navigation.GoodbooksDestinations
 import kotlinx.coroutines.delay
 
 /**
@@ -48,17 +57,25 @@ fun SplashScreen(navController: NavController) {
     Surface {
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .padding(15.dp)
                 .background(color = MaterialTheme.colorScheme.background),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Image(
-                modifier = Modifier.alpha(alphaAnimation.value),
+                modifier = Modifier.alpha(alphaAnimation.value)
+                    .width(150.dp)
+                    .height(150.dp),
                 painter = painterResource(id = R.drawable.book),
                 contentDescription = "Splash Book",
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
             )
         }
     }
+}
+
+@Preview
+@Composable
+fun SplashScreenPreview() {
+    val navController = rememberNavController()
+    SplashScreen(navController = navController)
 }

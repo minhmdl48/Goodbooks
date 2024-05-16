@@ -6,4 +6,8 @@
     <string name="see_more">see more</string>
 
     <string name="book_description">Book Description</string>
+
+    <string name="nav_home">Home</string>
+    <string name="nav_mybooks">My Books</string>
+    <string name="nav_search">Search</string>
 </resources>

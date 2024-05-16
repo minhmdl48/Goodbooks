@@ -120,4 +120,25 @@ class BookViewModel @Inject constructor(private val repository: BookRepository) 
         }
         return@withContext false
     }
+
+    suspend fun addBook(userID: String,shelfName: String, book: Book) {
+
+    }
+
+    suspend fun removeBookFromShelf(userId: String, shelfName: String, book: Book) {
+        val db = FirebaseFirestore.getInstance().collection("users").document(userId)
+        val documentSnapshot = db.get().await()
+        if (documentSnapshot.exists()) {
+            val shelves = documentSnapshot.toObject<User>()?.shelves as MutableList<Shelf>
+            val shelf: Shelf? = shelves.find { it.name == shelfName }
+            if (shelf != null) {
+                val books: MutableList<Book> = shelf.books as MutableList<Book>
+                books.removeIf { it.bookID == book.bookID }
+                shelf.books = books
+                val index = shelves.indexOfFirst { it.name == shelfName }
+                shelves[index] = shelf
+                db.update("shelves", shelves).await()
+            }
+        }
+    }
 }

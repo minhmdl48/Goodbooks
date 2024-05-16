@@ -1,7 +1,9 @@
 package com.minhmdl.goodbooks.screens.book
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -16,8 +18,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSizeIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,12 +32,16 @@ import androidx.compose.material.RadioButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.StarHalf
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,9 +57,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
@@ -77,6 +87,7 @@ import com.minhmdl.goodbooks.ui.theme.Blue_Text
 import com.minhmdl.goodbooks.ui.theme.Gray200
 import com.minhmdl.goodbooks.ui.theme.Yellow
 import com.minhmdl.goodbooks.utils.DataOrException
+import com.minhmdl.goodbooks.utils.MenuSample
 import com.minhmdl.goodbooks.utils.ShelvesAlertDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -85,7 +96,12 @@ import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun BookScreen(navController: NavController, bookViewModel: BookViewModel,shelfViewModel: ShelfViewModel, bookId: String?) {
+fun BookScreen(
+    navController: NavController,
+    bookViewModel: BookViewModel,
+    shelfViewModel: ShelfViewModel,
+    bookId: String?
+) {
 
     var openDialog by remember {
         mutableStateOf(false)
@@ -239,7 +255,6 @@ fun BookScreen(navController: NavController, bookViewModel: BookViewModel,shelfV
     }
 }
 
-
 @Composable
 fun Details(navController: NavController, book: Book?) {
     var bookTitle = "Unavailable"
@@ -263,7 +278,7 @@ fun Details(navController: NavController, book: Book?) {
         if (book.ratingsCount.toString().isNotEmpty()) {
             rating = book.averageRating.toString()
         }
-        if(book.industryIdentifiers.isNotEmpty()){
+        if (book.industryIdentifiers.isNotEmpty()) {
             isbn = book.industryIdentifiers[0].identifier.toString()
         }
         if (book.categories[0].isNotEmpty()) {
@@ -327,6 +342,7 @@ fun Details(navController: NavController, book: Book?) {
                         isbn = isbn,
                         description = description
                     )
+                    MenuSample()
                 }
             }
         }
@@ -405,7 +421,7 @@ fun BookDescription(
             .clip(
                 shape = RoundedCornerShape(
                     topStart = 30.dp,
-                    topEnd = 30.dp
+                    topEnd = 15.dp
                 )
             ),
         color = MaterialTheme.colorScheme.background
@@ -665,11 +681,108 @@ fun BookDescription(
                     modifier = Modifier.padding(top = 10.dp),
                     text = remainingDescription
                 )
-                Spacer(modifier = Modifier.height(50.dp))
+                Spacer(modifier = Modifier.height(15.dp))
             }
         }
     }
 }
+
+@Composable
+fun MenuContent(bookViewModel: BookViewModel,
+                userId: String?,
+                context: Context,
+                shelfExits: (String) -> Unit,
+                book: Book?){
+    var expanded by remember { mutableStateOf(false) }
+    val menuItems = listOf(
+        "Want to Read",
+        "Currently Reading",
+        "Read",
+    )
+    var openDialog by remember { mutableStateOf(false) }
+    var selectedItemIndex by remember { mutableStateOf(0) }
+    var otherShelfName by remember { mutableStateOf("") }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .wrapContentSize(Alignment.TopStart)
+    ) {
+
+        OutlinedCard(modifier = Modifier.padding(15.dp)) {
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .width(125.dp)
+                    .height(50.dp)
+                    .padding(3.dp)
+                    .clickable {
+                        expanded = true
+                    }
+            ) {
+                Text(
+                    text = menuItems[selectedItemIndex],
+                    fontFamily = poppinsFamily,
+                    fontSize = 13.sp
+
+                )
+                Image(
+                    painter = painterResource(id = R.drawable.baseline_arrow_drop_down_24),
+                    colorFilter = ColorFilter.tint(Color.Black),
+                    contentDescription = "Arrow drop down"
+
+                )
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.requiredSizeIn(maxHeight = 300.dp)
+            ) {
+                menuItems.forEachIndexed { index, item ->
+                    DropdownMenuItem(
+                        text = { Text(text = item) },
+                        onClick = {
+                            expanded = false
+                            selectedItemIndex = index
+                            if (book!= null){
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    val added = bookViewModel.addBookToShelf(
+                                        userId,
+                                        item,
+                                        book,
+                                        context,
+                                        shelfExists = { ShelfExistsName ->
+                                                otherShelfName = ShelfExistsName
+                                                openDialog = true
+                                        }
+
+                                    )
+                                }
+                            }
+                        },
+                        trailingIcon = {
+                            if (selectedItemIndex == index) {
+                                Icon(
+                                    imageVector = Icons.Filled.Check,
+                                    contentDescription = "Selected Icon"
+                                )
+                            }
+                        }
+                    )
+                }
+                HorizontalDivider()
+                DropdownMenuItem(
+                    text = { Text(text = "Remove from My Books") },
+                    onClick = {
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
 @Composable
 fun ExpandingText(modifier: Modifier = Modifier, text: String) {
     var isExpanded by remember { mutableStateOf(false) }
@@ -685,6 +798,7 @@ fun ExpandingText(modifier: Modifier = Modifier, text: String) {
             isExpanded -> {
                 finalText = "$text Show Less"
             }
+
             !isExpanded && textLayoutResult.hasVisualOverflow -> {
                 val lastCharIndex = textLayoutResult.getLineEnd(2)
                 val showMoreString = "... Show More"
@@ -713,6 +827,7 @@ fun ExpandingText(modifier: Modifier = Modifier, text: String) {
             .animateContentSize(),
     )
 }
+
 @Composable
 fun BottomSheetContent(onSave: (String) -> Unit, onRemove: () -> Unit) {
     var selectedOption by remember { mutableStateOf("") }
