@@ -73,7 +73,8 @@ fun Search(
         searchState.value.trim().isNotEmpty()
     }
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(5.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -89,8 +90,11 @@ fun Search(
                 })
         )
         Text(
-            "Search", fontSize = 16.sp,
-            fontWeight = FontWeight.Medium, fontFamily = poppinsFamily, color = Black
+            "Search",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            fontFamily = poppinsFamily,
+            color = Black
         )
 
     }
@@ -107,6 +111,7 @@ fun Search(
                 keyboardController?.hide()
             }
         )
+
     }
 }
 
@@ -172,3 +177,5 @@ fun Results(searchViewModel: SearchViewModel, navController: NavController) {
         }
     }
 }
+
+

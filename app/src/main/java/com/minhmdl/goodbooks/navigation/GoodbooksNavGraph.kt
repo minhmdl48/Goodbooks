@@ -13,6 +13,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.minhmdl.goodbooks.data.StoreUserName
+import com.minhmdl.goodbooks.screens.ProfileScreen
 import com.minhmdl.goodbooks.screens.SplashScreen
 import com.minhmdl.goodbooks.screens.book.BookScreen
 import com.minhmdl.goodbooks.screens.book.BookViewModel
@@ -66,13 +67,15 @@ fun GoodbooksNavGraph() {
                 BookScreen(
                     navController = navController,
                     bookViewModel = bookViewModel,
-                    bookId = bookId,
-                    shelfViewModel = shelfViewModel
+                    bookId = bookId
                 )
             }
         }
         composable(GoodbooksDestinations.SEARCH_ROUTE) {
             SearchScreen(navController = navController, searchViewModel)
+        }
+        composable(GoodbooksDestinations.PROFILE_ROUTE){
+            ProfileScreen(navController = navController)
         }
 
         val route = GoodbooksDestinations.CATEGORY_ROUTE

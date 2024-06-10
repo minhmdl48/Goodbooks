@@ -7,7 +7,8 @@ data class User(
     val shelves: List<Shelf>,
     val searchHistory: List<String>,
     val reviews: List<Review>,
-    val favourites: List<Book>
+    val favourites: List<Book>,
+    val progressReading: List<progressReading>
 )
 {
     // Add a no-argument constructor
@@ -15,6 +16,7 @@ data class User(
         "",
         "",
         "",
+        mutableListOf(),
         mutableListOf(),
         mutableListOf(),
         mutableListOf(),
@@ -38,4 +40,12 @@ data class Review(
 ){
     // Add a no-argument constructor
     constructor() : this(Book(), 0.0, "")
+}
+
+data class progressReading(
+    val bookId: String,
+    var progress: Int
+){
+    // Add a no-argument constructor
+    constructor() : this("", 0)
 }

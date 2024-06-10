@@ -2,7 +2,6 @@ package com.minhmdl.goodbooks.screens.shelf
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,31 +14,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForward
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.RateReview
-import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.StarBorder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -53,21 +42,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.text.HtmlCompat
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.grayseal.bookshelf.ui.theme.poppinsFamily
@@ -81,90 +65,12 @@ import com.minhmdl.goodbooks.ui.theme.Gray500
 import com.minhmdl.goodbooks.ui.theme.GreenIndicator
 import com.minhmdl.goodbooks.ui.theme.Pink500
 import com.minhmdl.goodbooks.ui.theme.Yellow
+import com.minhmdl.goodbooks.utils.BookListItem
 import com.minhmdl.goodbooks.utils.NavBar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
-//@Composable
-//fun ShelfScreen(navController: NavController, shelfViewModel: ShelfViewModel) {
-//    val userId = Firebase.auth.currentUser?.uid
-//    var shelves: List<Shelf> by remember {
-//        mutableStateOf(mutableListOf())
-//    }
-//    var loading by remember {
-//        mutableStateOf(true)
-//    }
-//    var tabIndex by remember{mutableStateOf(0)}
-//    val context = LocalContext.current
-//    shelves = shelfViewModel.getShelves(userId, context, onDone = {
-//        loading = false
-//    })
-//    Scaffold(content = { padding ->
-//        Column(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(20.dp)
-//        ) {
-//            Row(
-//                modifier = Modifier.fillMaxWidth(),
-//                horizontalArrangement = Arrangement.Center,
-//                verticalAlignment = Alignment.CenterVertically
-//            ) {
-//                Text(
-//                    "My Books",
-//                    fontFamily = poppinsFamily,
-//                    fontSize = 20.sp,
-//                    fontWeight = FontWeight.Bold,
-//                    color = MaterialTheme.colorScheme.onBackground,
-//                    textAlign = TextAlign.Center
-//                )
-//            }
-//            if (!loading) {
-//                Column(Modifier.fillMaxSize()){
-//                    TabRow(selectedTabIndex = tabIndex) {
-//                        shelves.forEachIndexed { index, shelf ->
-//                            Tab(
-//                                text = {
-//                                    Text(
-//                                        shelf.name,
-//                                        fontFamily = poppinsFamily,
-//                                        fontSize = 13.sp,
-//                                        fontWeight = FontWeight.Medium,
-//                                        overflow = TextOverflow.Clip,
-//                                        maxLines = 1,
-//                                        textAlign = TextAlign.Center,
-//                                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
-//                                    )
-//                                },
-//                                selected = tabIndex == index,
-//                                onClick = {
-//                                    tabIndex = index
-//
-//                                }
-//                            )
-//                        }
-//
-//                    }
-//                }
-//            } else {
-//                Column(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .fillMaxHeight(),
-//                    horizontalAlignment = Alignment.CenterHorizontally,
-//                    verticalArrangement = Arrangement.Center
-//                ) {
-//                    LinearProgressIndicator(color = GreenIndicator)
-//                }
-//            }
-//        }
-//    },
-//        bottomBar = {
-//            NavBar(navController = navController)
-//        })
-//}
 
 @Composable
 fun ShelfScreen(navController: NavController, shelfViewModel: ShelfViewModel) {
@@ -205,31 +111,7 @@ fun ShelfScreen(navController: NavController, shelfViewModel: ShelfViewModel) {
                     textAlign = TextAlign.Center
                 )
             }
-                Column(Modifier.fillMaxSize()){
-                    TabRow(selectedTabIndex = tabIndex) {
-                        tabItemList.forEachIndexed { index, tabItem ->
-                            Tab(
-                                text = {
-                                    Text(
-                                        tabItem.title,
-                                        fontFamily = poppinsFamily,
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        overflow = TextOverflow.Clip,
-                                        maxLines = 1,
-                                        textAlign = TextAlign.Center,
-                                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
-                                    )
-                                },
-                                selected = tabIndex == index,
-                                onClick = {
-                                    tabIndex = index
-
-                                }
-                            )
-                        }
-                    }
-                }
+            ShelfBooks(userId = userId, navController = navController, shelves = shelves, shelfViewModel = shelfViewModel)
             }
     },
         bottomBar = {
@@ -239,6 +121,7 @@ fun ShelfScreen(navController: NavController, shelfViewModel: ShelfViewModel) {
 data class TabItem(
     val title :String
 )
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShelfBooks(
     userId: String?,
@@ -285,10 +168,13 @@ fun ShelfBooks(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        TabRow(
-            modifier = Modifier.fillMaxWidth(),
+        PrimaryScrollableTabRow(
             selectedTabIndex = selectedTab,
-            containerColor = MaterialTheme.colorScheme.background,
+            modifier = Modifier
+                .fillMaxWidth(),
+            containerColor = MaterialTheme.colorScheme.surface,
+            edgePadding = 5.dp
+
         ) {
             shelfNames.forEachIndexed { index, name ->
                 Tab(
@@ -358,32 +244,14 @@ fun ShelfBooks(
                             previewText = cleanDescription.toString()
                         }
                         val bookId = item.bookID
-                        val favourite = booksInFavourites.contains(item)
-                        val reviewed = booksReviewed.any { it.book.bookID == item.bookID }
-                        BookCard(
-                            shelfViewModel,
-                            userId = userId,
-                            book = item,
-                            shelfName = selectedShelf.name,
-                            favourite = favourite,
-                            reviewed = reviewed,
+
+                        BookListItem(
                             bookTitle = title,
                             bookAuthor = author,
-                            previewText = previewText,
                             imageUrl = imageUrl,
                             onClick = {
                                 navController.navigate(GoodbooksDestinations.DETAIL_ROUTE + "/$bookId")
-                            },
-                            onShelfChanged = {
-                                booksInShelf =
-                                    shelfViewModel.getBooksInAShelf(
-                                        userId,
-                                        context,
-                                        selectedShelf.name,
-                                        onDone = {
-                                            booksLoading = false
-                                        })
-                            },
+                            }
                         )
                     }
                 }
@@ -415,275 +283,8 @@ fun ShelfBooks(
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                         textAlign = TextAlign.Center
                     )
-                    // add button to navigate to discover screen
                     Button(onClick = {navController.navigate(GoodbooksDestinations.HOME_ROUTE)}){
                         Text("Explore books")
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun BookCard(
-    shelfViewModel: ShelfViewModel,
-    userId: String?,
-    book: Book,
-    shelfName: String?,
-    favourite: Boolean,
-    reviewed: Boolean,
-    bookTitle: String,
-    bookAuthor: String,
-    previewText: String,
-    imageUrl: String,
-    onShelfChanged: () -> Unit,
-    onClick: () -> Unit,
-) {
-    val context = LocalContext.current
-    var favourited by remember {
-        mutableStateOf(favourite)
-    }
-    val favIcon = if (favourited) {
-        Icons.Rounded.Favorite
-    } else {
-        Icons.Rounded.FavoriteBorder
-    }
-    var isReviewed by remember {
-        mutableStateOf(reviewed)
-    }
-    var isDeleting by remember { mutableStateOf(false) }
-    // State to hold the visibility of the review dialog
-    var showReviewDialog by remember { mutableStateOf(false) }
-    Surface(
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .fillMaxWidth(),
-        shape = RoundedCornerShape(5.dp),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        ReviewDialog(
-            shelfViewModel = shelfViewModel,
-            userId = userId,
-            book = book,
-            showReviewDialog = showReviewDialog,
-            title = "Review",
-            drawable = R.drawable.book,
-            onDismiss = { showReviewDialog = false }) {
-            isReviewed = true
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 10.dp, horizontal = 5.dp)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(imageUrl)
-                            .build(),
-                        contentDescription = "Book Image",
-                        contentScale = ContentScale.FillHeight
-                    )
-                    Column {
-                        Text(
-                            bookTitle,
-                            overflow = TextOverflow.Ellipsis,
-                            fontFamily = poppinsFamily,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 13.sp,
-                            maxLines = 1,
-                            color = MaterialTheme.colorScheme.onBackground,
-                        )
-                        Text(
-                            bookAuthor,
-                            overflow = TextOverflow.Clip,
-                            fontFamily = poppinsFamily,
-                            fontSize = 12.sp,
-                            maxLines = 1,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                        )
-                        Text(
-                            previewText,
-                            overflow = TextOverflow.Ellipsis,
-                            fontFamily = poppinsFamily,
-                            fontSize = 13.sp,
-                            maxLines = 2,
-                            color = MaterialTheme.colorScheme.onBackground,
-                        )
-                    }
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(Modifier.weight(1f)) {
-                        if (!isReviewed) {
-                            Icon(
-                                Icons.Outlined.RateReview,
-                                contentDescription = "Review",
-                                tint = Pink500,
-                                modifier = Modifier
-                                    .size(20.dp)
-                                    .clickable(onClick = {
-                                        showReviewDialog = true
-                                    })
-                            )
-                        } else {
-                            Text(
-                                "Reviewed",
-                                fontFamily = poppinsFamily,
-                                fontSize = 12.sp,
-                                color = Pink500,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                    }
-                    Column(Modifier.weight(1f)) {
-                        Icon(
-                            favIcon,
-                            contentDescription = "Favourite",
-                            tint = Pink500,
-                            modifier = Modifier
-                                .size(20.dp)
-                                .clickable(
-                                    onClick = {
-                                        if (!favourited) {
-                                            favourited = true
-                                            CoroutineScope(Dispatchers.IO).launch {
-                                                val success = shelfViewModel.addFavourite(
-                                                    userId = userId,
-                                                    book = book
-                                                )
-                                                if (success) {
-                                                    withContext(Dispatchers.Main) {
-                                                        Toast
-                                                            .makeText(
-                                                                context,
-                                                                "Added to favourites",
-                                                                Toast.LENGTH_SHORT
-                                                            )
-                                                            .show()
-                                                    }
-                                                } else {
-                                                    withContext(Dispatchers.Main) {
-                                                        Toast
-                                                            .makeText(
-                                                                context,
-                                                                "Something went wrong!",
-                                                                Toast.LENGTH_SHORT
-                                                            )
-                                                            .show()
-                                                    }
-                                                }
-                                            }
-                                        } else {
-                                            favourited = false
-                                            CoroutineScope(Dispatchers.IO).launch {
-                                                val success = shelfViewModel.removeFavourite(
-                                                    userId = userId,
-                                                    book = book
-                                                )
-                                                if (success) {
-                                                    withContext(Dispatchers.Main) {
-                                                        Toast
-                                                            .makeText(
-                                                                context,
-                                                                "Removed from favourites",
-                                                                Toast.LENGTH_SHORT
-                                                            )
-                                                            .show()
-                                                    }
-                                                } else {
-                                                    withContext(Dispatchers.Main) {
-                                                        Toast
-                                                            .makeText(
-                                                                context,
-                                                                "Something went wrong!",
-                                                                Toast.LENGTH_SHORT
-                                                            )
-                                                            .show()
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                )
-                        )
-                    }
-                    Column(Modifier.weight(1f)) {
-                        Box {
-                            Icon(
-                                Icons.Outlined.Delete,
-                                contentDescription = "Remove",
-                                tint = Pink500,
-                                modifier = Modifier
-                                    .size(20.dp)
-                                    .clickable(onClick = {
-                                        isDeleting = true // set the deletion state to true
-                                        CoroutineScope(Dispatchers.IO).launch {
-                                            val done = shelfViewModel.deleteABookInShelf(
-                                                userId, book,
-                                                shelfName
-                                            )
-                                            if (done) {
-                                                withContext(Dispatchers.Main) {
-                                                    Toast
-                                                        .makeText(
-                                                            context,
-                                                            "Book deleted from shelf",
-                                                            Toast.LENGTH_SHORT
-                                                        )
-                                                        .show()
-                                                    onShelfChanged()
-                                                }
-                                            }
-                                            isDeleting = false // set the deletion state to false
-                                        }
-                                    })
-                            )
-                            if (isDeleting) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier
-                                        .size(20.dp)
-                                        .align(Alignment.Center),
-                                    color = GreenIndicator
-                                )
-                            }
-                        }
-                    }
-                    Column(Modifier.weight(1f)) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable(onClick = onClick),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "Read more",
-                                fontFamily = poppinsFamily,
-                                fontSize = 12.sp,
-                                color = Pink500,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                            Spacer(modifier = Modifier.width(5.dp))
-                            Icon(
-                                Icons.AutoMirrored.Rounded.ArrowForward,
-                                contentDescription = "Arrow",
-                                tint = Pink500,
-                                modifier = Modifier.size(15.dp)
-                            )
-                        }
                     }
                 }
             }

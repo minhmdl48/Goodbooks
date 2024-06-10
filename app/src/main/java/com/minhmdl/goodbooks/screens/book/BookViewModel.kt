@@ -11,6 +11,7 @@ import com.minhmdl.goodbooks.data.BookRepository
 import com.minhmdl.goodbooks.model.Book
 import com.minhmdl.goodbooks.model.Shelf
 import com.minhmdl.goodbooks.model.User
+import com.minhmdl.goodbooks.model.progressReading
 import com.minhmdl.goodbooks.utils.DataOrException
 
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -121,23 +122,140 @@ class BookViewModel @Inject constructor(private val repository: BookRepository) 
         return@withContext false
     }
 
-    suspend fun addBook(userID: String,shelfName: String, book: Book) {
+    suspend fun addBook(
+        userID: String,
+        shelfName: String,
+        book: Book,
+        context: Context,
+        shelfExists: (String) -> Unit
+    ): Boolean = withContext(Dispatchers.IO) {
 
+        val db = FirebaseFirestore.getInstance().collection("users").document(userID)
+        db.get().await().let { documentSnapshot ->
+            if (documentSnapshot.exists()) {
+                val shelves = documentSnapshot.toObject<User>()?.shelves as MutableList<Shelf>
+                val shelf: Shelf? = shelves.find { shelf ->
+                    shelf.name == shelfName
+                }
+                if (shelf != null) {
+                    val books: MutableList<Book> = shelf.books as MutableList<Book>
+                    if (!books.any { it.bookID == book.bookID }) {
+                        val otherShelf = shelves.find { otherShelf ->
+                            otherShelf.name != shelfName && otherShelf.books.any { it.bookID == book.bookID }
+                        }
+                        if (otherShelf != null) {
+                            shelfExists(otherShelf.name)
+                        } else {
+                            books.add(book)
+                            shelf.books = books
+                            val index = shelves.indexOfFirst { it.name == shelfName }
+                            shelves[index] = shelf
+                            db.update("shelves", shelves).await()
+                            return@withContext true
+                        }
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                context,
+                                "Book already in the shelf",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                } else {
+                    Log.d("AddBookToShelf", "Shelf not found: $shelfName")
+                }
+            } else {
+                Log.d("AddBookToShelf", "Document snapshot does not exist for user: $userID")
+            }
+        }
+
+        return@withContext false
     }
 
-    suspend fun removeBookFromShelf(userId: String, shelfName: String, book: Book) {
-        val db = FirebaseFirestore.getInstance().collection("users").document(userId)
-        val documentSnapshot = db.get().await()
-        if (documentSnapshot.exists()) {
-            val shelves = documentSnapshot.toObject<User>()?.shelves as MutableList<Shelf>
-            val shelf: Shelf? = shelves.find { it.name == shelfName }
-            if (shelf != null) {
-                val books: MutableList<Book> = shelf.books as MutableList<Book>
-                books.removeIf { it.bookID == book.bookID }
-                shelf.books = books
-                val index = shelves.indexOfFirst { it.name == shelfName }
-                shelves[index] = shelf
-                db.update("shelves", shelves).await()
+    suspend fun deleteABookInShelf(userId: String?, book: Book, shelfName: String?): Boolean =
+        withContext(Dispatchers.IO) {
+            if (userId != null) {
+                val db = FirebaseFirestore.getInstance().collection("users").document(userId)
+                db.get().await().let { documentSnapshot ->
+                    if (documentSnapshot.exists()) {
+                        val userShelves =
+                            documentSnapshot.toObject<User>()?.shelves as MutableList<Shelf>
+                        val shelf = userShelves.find { it.name == shelfName }
+                        if (shelf != null) {
+                            val books: MutableList<Book> = shelf.books as MutableList<Book>
+                            books.removeIf { it.bookID == book.bookID }
+                            shelf.books = books
+                            // Update shelves
+                            val index = userShelves.indexOfFirst { it.name == shelfName }
+                            userShelves[index] = shelf
+                            db.update("shelves", userShelves).await()
+                            return@withContext true
+                        }
+                    }
+                }
+            }
+            return@withContext false
+        }
+
+    suspend fun getShelfName(userID: String?, book: Book): String = withContext(Dispatchers.IO) {
+        if (userID != null) {
+            val db = FirebaseFirestore.getInstance().collection("users").document(userID)
+            db.get().await().let { documentSnapshot ->
+                if (documentSnapshot.exists()) {
+                    val userShelves = documentSnapshot.toObject<User>()?.shelves
+                    if (userShelves != null) {
+                        for (shelf in userShelves) {
+                            if (shelf.books.any { it.bookID == book.bookID }) {
+                                return@withContext shelf.name
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return@withContext ""
+    }
+
+    suspend fun getProgressReading(userId: String?, bookId: String): Int = withContext(Dispatchers.IO) {
+        if (userId != null) {
+            val db = FirebaseFirestore.getInstance().collection("users").document(userId)
+            db.get().await().let { documentSnapshot ->
+                if (documentSnapshot.exists()) {
+                    val progressReading = documentSnapshot.toObject<User>()?.progressReading
+                    if (progressReading != null) {
+                        for (progress in progressReading) {
+                            if (progress.bookId == bookId) {
+                                return@withContext progress.progress
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return@withContext 0
+    }
+
+    suspend fun setProgressReading(userId: String?, bookId: String, progress: Int) = withContext(Dispatchers.IO) {
+        if (userId != null) {
+            val db = FirebaseFirestore.getInstance().collection("users").document(userId)
+            db.get().await().let { documentSnapshot ->
+                if (documentSnapshot.exists()) {
+                    val user = documentSnapshot.toObject<User>()
+                    val progressReadingList = user?.progressReading?.toMutableList()
+                    val existingProgress = progressReadingList?.find { it.bookId == bookId }
+
+                    if (existingProgress != null) {
+                        // Update the existing progress
+                        existingProgress.progress = progress
+                    } else {
+                        // Add new progressReading if it doesn't exist
+                        progressReadingList?.add(progressReading(bookId, progress))
+                    }
+
+                    // Update the progressReading in Firestore
+                    db.update("progressReading", progressReadingList).await()
+                }
             }
         }
     }

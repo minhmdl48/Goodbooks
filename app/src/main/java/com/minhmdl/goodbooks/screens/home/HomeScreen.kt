@@ -1,9 +1,9 @@
 package com.minhmdl.goodbooks.screens.home
 
-import android.content.ContentValues.TAG
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.util.Log
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,24 +23,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.navigation.NavController
-import com.google.firebase.auth.FirebaseUser
+import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
-import com.grayseal.bookshelf.ui.theme.loraFamily
 import com.grayseal.bookshelf.ui.theme.poppinsFamily
 import com.minhmdl.goodbooks.R
 import com.minhmdl.goodbooks.data.StoreUserName
@@ -53,18 +48,13 @@ import com.minhmdl.goodbooks.screens.search.SearchViewModel
 import com.minhmdl.goodbooks.ui.theme.Black
 import com.minhmdl.goodbooks.ui.theme.Gray200
 import com.minhmdl.goodbooks.ui.theme.GreenIndicator
-import com.minhmdl.goodbooks.ui.theme.White
+import com.minhmdl.goodbooks.utils.BookListItem
 import com.minhmdl.goodbooks.utils.Category
-import com.minhmdl.goodbooks.utils.GoodbooksNavigationDrawerItem
+import com.minhmdl.goodbooks.utils.GoodbooksDivider
 import com.minhmdl.goodbooks.utils.NavBar
-import com.minhmdl.goodbooks.utils.Reading
-import com.minhmdl.goodbooks.utils.ShelvesAlertDialog
 import kotlinx.coroutines.launch
 import java.util.*
 
-/**
- * Composable function that displays the Home Screen of the app.
- */
 @Composable
 fun HomeScreen(
     navController: NavController,
@@ -99,7 +89,6 @@ fun HomeScreen(
     } else {
         val name = nameDataStore.getName.collectAsState(initial = "")
         HomeContent(
-            user = user!!,
             name = name.value,
             avatar = avatar,
             navController = navController,
@@ -112,7 +101,6 @@ fun HomeScreen(
 
 @Composable
 fun HomeContent(
-    user: FirebaseUser,
     name: String?,
     avatar: Bitmap,
     navController: NavController,
@@ -130,270 +118,76 @@ fun HomeContent(
         Book()
     }
 
-    val readingBooksTotal = reading.size
     val scope = rememberCoroutineScope()
-    val items = mapOf(
-        "Log Out" to R.drawable.logout
-//        "Delete Account" to R.drawable.delete
-    )
-    val selectedItem = remember { mutableStateOf(items["Log Out"]) }
-    var openDialog by remember {
-        mutableStateOf(false)
-    }
 
-    val bitmap = remember {
-        mutableStateOf(avatar)
-    }
-
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet(
-                modifier = Modifier.width(250.dp),
-                drawerShape = RectangleShape,
-                drawerContainerColor = MaterialTheme.colorScheme.background,
-                drawerTonalElevation = 0.dp,
-            ) {
-                Spacer(Modifier.height(30.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 20.dp, top = 20.dp),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    ConstraintLayout {
-                        val (profile, edit) = createRefs()
-                        Surface(
-                            modifier = Modifier
-                                .size(60.dp)
-                                .background(color = Color.Transparent, shape = CircleShape)
-                                .constrainAs(profile) {
-                                    top.linkTo(parent.top)
-                                    start.linkTo(parent.start)
-                                }
-                                .clickable(onClick = {}),
-                            shape = CircleShape,
-                        ) {
-                            val image = bitmap.value
-                            Image(
-                                bitmap = image.asImageBitmap(),
-                                contentDescription = "Profile Picture",
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .clickable(onClick = {}),
-                                contentScale = ContentScale.Crop
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text(
-                        "Hi, ${name?.substringBefore(" ")}!", fontFamily = loraFamily,
-                        fontSize = 23.sp,
-                        overflow = TextOverflow.Clip,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.align(Alignment.CenterVertically)
-                    )
-                }
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Spacer(Modifier.height(20.dp))
-                    Text(
-                        "$readingBooksTotal books in your reading list", fontFamily = poppinsFamily,
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Spacer(Modifier.height(10.dp))
-                    HorizontalDivider(color = MaterialTheme.colorScheme.onBackground)
-                    Spacer(Modifier.height(20.dp))
-                    items.forEach { item ->
-                        val selectedValue = selectedItem.value
-                        val selectedKey = items.entries.find { it.value == selectedValue }?.key
-                        ShelvesAlertDialog(
-                            openDialog = openDialog,
-                            drawable = R.mipmap.ic_book,
-                            size = 50.dp,
-                            color = Color.Transparent,
-                            title = if (selectedKey == "Log Out") {
-                                "Confirm Logout"
-                            } else {
-                                "Delete Account"
-                            },
-
-                            details = if (selectedKey == "Log Out") {
-                                "Do you want to Logout ?"
-                            } else {
-                                "You are about to delete your account. Continues?"
-                            },
-                            onDismiss = {
-                                openDialog = false
-                            },
-                            onClick = {
-                                if (selectedKey == "Log Out") Firebase.auth.signOut()
-                                else {
-                                    val db = FirebaseFirestore.getInstance()
-                                    val userId = Firebase.auth.currentUser?.uid
-
-                                    userId?.let {
-                                        db.collection("users").document(it)
-                                            .delete()
-                                            .addOnSuccessListener {
-                                                Log.d(
-                                                    "HomeScreen",
-                                                    "User data successfully deleted!"
-                                                )
-                                            }
-                                            .addOnFailureListener { e ->
-                                                Log.w("HomeScreen", "Error deleting user data", e)
-                                            }
-                                    }
-                                    user.delete()
-                                        .addOnCompleteListener { task ->
-                                            if (task.isSuccessful) {
-                                                Log.d(TAG, "User account deleted.")
-                                            } else {
-                                                // If sign in fails, display a message to the user.
-                                                Log.w(TAG, "deleteUser:failure", task.exception)
-
-                                            }
-                                        }
-
-                                }
-                                navController.navigate(GoodbooksDestinations.LOGIN_ROUTE)
-                            }
-                        )
-                        GoodbooksNavigationDrawerItem(
-                            icon = {
-                                androidx.compose.material3.Icon(
-                                    painter = painterResource(id = item.value),
-                                    contentDescription = item.key,
-                                    modifier = Modifier
-                                        .size(35.dp)
-                                        .background(color = Color.Transparent),
-                                    tint = MaterialTheme.colorScheme.onBackground
-                                )
-                            },
-                            label = {
-                                Text(
-                                    item.key,
-                                    fontFamily = poppinsFamily,
-                                    fontWeight = FontWeight.Medium,
-                                    fontSize = 15.sp
-                                )
-                            },
-                            selected = item.value == selectedItem.value,
-                            onClick = {
-                                selectedItem.value = item.value
-//                                if (item.key == "Log Out" || item.key == "Delete Account") {
-                                if (item.key == "Log Out") {
-                                    openDialog = true
-                                }
-                            },
-                            colors = NavigationDrawerItemDefaults.colors(
-                                selectedContainerColor = MaterialTheme.colorScheme.background,
-                                unselectedContainerColor = Color.Transparent,
-                                selectedIconColor = Black,
-                                unselectedIconColor = MaterialTheme.colorScheme.onBackground,
-                                selectedTextColor = Black,
-                                unselectedTextColor = MaterialTheme.colorScheme.onBackground
-                            )
-                        )
-                    }
-
+    Scaffold(content = { padding ->
+        Column(
+            modifier = Modifier
+                .padding(top = 20.dp, bottom = 20.dp),
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            HomeTopHeader(navController, searchViewModel, avatar = avatar) {
+                scope.launch {
+                    drawerState.open()
                 }
             }
-        },
-        scrimColor = Color.Transparent,
-        content = {
-            Scaffold(content = { padding ->
+
+            GoodbooksDivider()
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
                 Column(
                     modifier = Modifier
-                        .padding(top = 20.dp, bottom = 20.dp),
-                    verticalArrangement = Arrangement.SpaceEvenly
+                        .fillMaxWidth()
                 ) {
-                    HomeTopHeader(navController, searchViewModel, avatar = avatar) {
-                        scope.launch {
-                            drawerState.open()
-                        }
-                    }
-                    HorizontalDivider(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 2.dp),
-                        color = Gray200
+                    Text(
+                        "Welcome back, ${name?.substringBefore(" ")}!",
+                        fontFamily = poppinsFamily,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 15.sp,
+                        color = Black,
+                        modifier = Modifier.padding(
+                            top = 10.dp,
+                            start = 20.dp,
+                            end = 20.dp
+                        )
                     )
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                "Welcome back, ${name?.substringBefore(" ")}!",
-                                fontFamily = poppinsFamily,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 15.sp,
-                                color = Black,
-                                modifier = Modifier.padding(
-                                    top = 10.dp,
-                                    start = 20.dp,
-                                    end = 20.dp
-                                )
-                            )
-                            Text(
-                                "What do you want to read today?",
-                                fontFamily = poppinsFamily,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 19.sp,
-                                color = Black,
-                                modifier = Modifier.padding(
-                                    top = 10.dp,
-                                    start = 20.dp,
-                                    end = 20.dp
-                                )
-                            )
-                        }
-                    }
-
-                    HorizontalDivider(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 2.dp),
-                        color = Gray200
-                    )
-
-                    Categories(navController = navController)
-
-                    HorizontalDivider(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 2.dp),
-                        color = Gray200
-                    )
-                    ReadingList(
-                        navController,
-                        loading = loading,
-                        readingList = reading
+                    Text(
+                        "What do you want to read today?",
+                        fontFamily = poppinsFamily,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 19.sp,
+                        color = Black,
+                        modifier = Modifier.padding(
+                            top = 10.dp,
+                            start = 20.dp,
+                            end = 20.dp
+                        )
                     )
                 }
-            },
-                bottomBar = {
-                    NavBar(navController)
-                })
+            }
+
+            GoodbooksDivider()
+
+            Categories(navController = navController)
+
+            GoodbooksDivider()
+
+            ReadingList(
+                navController,
+                loading = loading,
+                readingList = reading
+            )
+        }
+    },
+        bottomBar = {
+            NavBar(navController)
         }
     )
 }
 
-/**
- * HomeTopHeader: contains the user's profile picture and a search icon that navigates to the search screen.
- */
 @Composable
 fun HomeTopHeader(
     navController: NavController,
@@ -470,7 +264,7 @@ fun Categories(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 10.dp, bottom = 5.dp),
+            .padding(top = 5.dp, bottom = 5.dp),
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
         Text(
@@ -482,7 +276,7 @@ fun Categories(navController: NavController) {
             modifier = Modifier.padding(top = 10.dp, start = 20.dp, end = 20.dp)
         )
 
-        Spacer(modifier = Modifier.height(3.dp))
+        Spacer(modifier = Modifier.height(5.dp))
 
         val keysList = categories.keys.toList()
         LazyRow(
@@ -507,6 +301,12 @@ fun Categories(navController: NavController) {
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun CategoriesPreview() {
+    Categories(navController = rememberNavController())
 }
 
 /**
@@ -564,22 +364,12 @@ fun ReadingList(navController: NavController, loading: Boolean, readingList: Lis
                 verticalArrangement = Arrangement.spacedBy(15.dp)
             ) {
                 itemsIndexed(items = readingList) { index: Int, item: Book ->
-                    var genre = item.categories[0]
-                    val words = genre.split("/")
-                        .map { it.trim() }
-                    val smallestWord =
-                        words.minByOrNull { it.length }
-                    genre = smallestWord ?: ""
-                    if (genre == "") {
-                        genre = "Unavailable"
-                    }
+
                     item.imageLinks.thumbnail?.let {
-                        Reading(
-                            genre = genre,
-                            bookAuthor = item.authors[0],
+                        BookListItem(
                             bookTitle = item.title,
+                            bookAuthor = item.authors[0],
                             imageUrl = it.replace("http", "https"),
-                            rating = item.averageRating.toString(),
                             onClick = { navController.navigate(GoodbooksDestinations.DETAIL_ROUTE + "/${item.bookID}") }
                         )
                     }
@@ -588,3 +378,4 @@ fun ReadingList(navController: NavController, loading: Boolean, readingList: Lis
         }
     }
 }
+

@@ -1,6 +1,7 @@
 package com.minhmdl.goodbooks.screens.shelf
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -36,20 +37,10 @@ class ShelfViewModel : ViewModel() {
                         val shelf = shelves.find { it.name == shelfName }
                         if (shelf != null) {
                             booksInShelf.value = shelf.books as MutableList<Book>
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "Error fetching books",
-                                Toast.LENGTH_SHORT
-                            ).show()
                         }
                     }
                 } else {
-                    Toast.makeText(
-                        context,
-                        "Error fetching books",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Log.e("ShelfViewModel", "Error fetching books in shelf")
                 }
                 onDone()
             }.addOnFailureListener {
@@ -88,29 +79,7 @@ class ShelfViewModel : ViewModel() {
     }
 
     // Delete a book from a shelf
-    suspend fun deleteABookInShelf(userId: String?, book: Book, shelfName: String?): Boolean = withContext(Dispatchers.IO){
-        if (userId != null) {
-            val db = FirebaseFirestore.getInstance().collection("users").document(userId)
-            db.get().await().let { documentSnapshot ->
-                if (documentSnapshot.exists()) {
-                    val userShelves =
-                        documentSnapshot.toObject<User>()?.shelves as MutableList<Shelf>
-                    val shelf = userShelves.find { it.name == shelfName }
-                    if (shelf != null) {
-                        val books = shelf.books as MutableList<Book>
-                        books.remove(book)
-                        shelf.books = books
-                        // Update shelves
-                        val index = userShelves.indexOfFirst { it.name == shelfName }
-                        userShelves[index] = shelf
-                        db.update("shelves", userShelves).await()
-                        return@withContext true
-                    }
-                }
-            }
-        }
-        return@withContext false
-    }
+
 
     suspend fun addFavourite(
         userId: String?,

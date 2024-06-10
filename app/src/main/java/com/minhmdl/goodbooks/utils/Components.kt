@@ -1,73 +1,82 @@
 package com.minhmdl.goodbooks.utils
 
+import android.content.Context
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSizeIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.TextSelectionColors
+import androidx.compose.material.Scaffold
+import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.InsertEmoticon
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.SentimentSatisfied
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.rounded.AlternateEmail
-import androidx.compose.material.icons.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Star
-import androidx.compose.material.icons.rounded.StarHalf
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -80,25 +89,31 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import com.grayseal.bookshelf.ui.theme.poppinsFamily
 import com.minhmdl.goodbooks.R
+import com.minhmdl.goodbooks.model.Book
 import com.minhmdl.goodbooks.navigation.BottomNavItem
 import com.minhmdl.goodbooks.navigation.GoodbooksDestinations
+import com.minhmdl.goodbooks.screens.AddBooksScreen
+import com.minhmdl.goodbooks.screens.book.BookViewModel
 import com.minhmdl.goodbooks.ui.theme.Black
 import com.minhmdl.goodbooks.ui.theme.Gray200
 import com.minhmdl.goodbooks.ui.theme.Gray500
 import com.minhmdl.goodbooks.ui.theme.Green
-import com.minhmdl.goodbooks.ui.theme.Pink500
-import com.minhmdl.goodbooks.ui.theme.Yellow
 import com.minhmdl.goodbooks.ui.theme.iconColor
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 /**
@@ -422,7 +437,10 @@ fun Category(category: String, image: Int, onClick: () -> Unit) {
         ) {
             Image(
                 painter = painterResource(id = image),
-                modifier = Modifier.background(color = MaterialTheme.colorScheme.onPrimary, shape = CircleShape),
+                modifier = Modifier.background(
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    shape = CircleShape
+                ),
                 contentDescription = "Category"
             )
         }
@@ -441,217 +459,45 @@ fun Category(category: String, image: Int, onClick: () -> Unit) {
 fun CategoryPreview() {
     Category("Fiction", R.drawable.finance) {}
 }
-/**
-A Composable function that displays a book with its author and image.
 
-The book is displayed as a Surface with a rounded corner shape, with the provided image inside it.
-The book's title and author are displayed below the image. When the book is clicked, the onClick
-function is called.
-// */
-@Composable
-fun Reading(
-    genre: String,
-    bookAuthor: String,
-    bookTitle: String,
-    imageUrl: String,
-    rating: String,
-    onClick: () -> Unit
-) {
-    var loading by remember {
-        mutableStateOf(false)
-    }
-    Surface(
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min),
-        shape = RoundedCornerShape(5.dp),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 10.dp, horizontal = 5.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(imageUrl)
-                    .build(),
-                contentDescription = "Book Image",
-                contentScale = ContentScale.Inside,
-                onLoading = {
-                    loading = true
-                },
-                onSuccess = {
-                    loading = false
-                }
-            )
-            if (loading) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(25.dp),
-                        color = Yellow
-                    )
-                }
-            }
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    genre,
-                    fontFamily = poppinsFamily,
-                    fontSize = 10.sp,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    bookTitle,
-                    fontFamily = poppinsFamily,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 14.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onBackground,
-                )
-                Text(
-                    "by $bookAuthor",
-                    fontFamily = poppinsFamily,
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.Start
-                    ) {
-                        Row {
-                            for (i in 0 until rating.toFloat().toInt()) {
-                                androidx.compose.material.Icon(
-                                    Icons.Rounded.Star,
-                                    contentDescription = "star",
-                                    tint = Yellow,
-                                    modifier = Modifier.size(15.dp)
-                                )
-                            }
-                            if ((5 - rating.toFloat()) > 0) {
-                                val unrated = 5 - rating.toFloat().toInt()
-                                if ((rating.toFloat() - rating.toFloat().toInt()) > 0) {
-                                    androidx.compose.material.Icon(
-                                        Icons.Rounded.StarHalf,
-                                        contentDescription = "star",
-                                        tint = Yellow,
-                                        modifier = Modifier.size(15.dp)
-                                    )
-                                    for (i in 0 until unrated - 1) {
-                                        androidx.compose.material.Icon(
-                                            Icons.Rounded.Star,
-                                            contentDescription = "star",
-                                            tint = Color.LightGray,
-                                            modifier = Modifier.size(15.dp)
-                                        )
-                                    }
-                                } else {
-                                    for (i in 0 until unrated) {
-                                        androidx.compose.material.Icon(
-                                            Icons.Rounded.Star,
-                                            contentDescription = "star",
-                                            tint = Color.LightGray,
-                                            modifier = Modifier.size(15.dp)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.End
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .align(Alignment.End)
-                                .clickable(onClick = onClick),
-                            horizontalArrangement = Arrangement.End,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "Read more",
-                                fontFamily = poppinsFamily,
-                                fontSize = 12.sp,
-                                color = Pink500,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                            Spacer(modifier = Modifier.width(5.dp))
-                            androidx.compose.material.Icon(
-                                Icons.Rounded.ArrowForward,
-                                contentDescription = "Arrow",
-                                tint = Pink500,
-                                modifier = Modifier.size(15.dp)
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-/**
-A Composable function that displays a navigation bar with clickable icons and labels.
-The navigation bar consists of four items: Home, Shelves, Favourites, and Reviews, each with an
-associated icon. The selected item is highlighted with the primary color, while the unselected
-items are displayed with the default Material Design colors. When an item is clicked, the
-selectedItem variable is updated to reflect the new selection.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NavBar(navController: NavController) {
     val items = listOf(
         BottomNavItem(
-            name = stringResource(id = R.string.nav_home),
+            name = stringResource(id = R.string.home),
             route = GoodbooksDestinations.HOME_ROUTE,
             selectedIcon = R.drawable.ic_home_selected,
             unselectedIcon = R.drawable.ic_home_unselected
         ),
         BottomNavItem(
-            name = stringResource(id = R.string.nav_mybooks),
-            route = GoodbooksDestinations.DETAIL_ROUTE,
+            name = stringResource(id = R.string.home_mybooks),
+            route = GoodbooksDestinations.SHELF_ROUTE,
             selectedIcon = R.drawable.ic_shelf_selected,
             unselectedIcon = R.drawable.ic_shelf_unselected
         ),
         BottomNavItem(
-            name = stringResource(id = R.string.nav_search),
+            name = stringResource(id = R.string.home_search),
             route = GoodbooksDestinations.SEARCH_ROUTE,
             selectedIcon = R.drawable.ic_search,
             unselectedIcon = R.drawable.ic_search
+        ),
+        BottomNavItem(
+            name = stringResource(id = R.string.profile),
+            route = GoodbooksDestinations.PROFILE_ROUTE,
+            selectedIcon = R.drawable.ic_profile_selected,
+            unselectedIcon = R.drawable.ic_profile_unselected
         )
-
     )
 
     val backStackEntry = navController.currentBackStackEntryAsState()
-    val onSurfaceColor = MaterialTheme.colorScheme.onSurfaceVariant
+
     Surface(
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.fillMaxWidth()
     ) {
         NavigationBar(
-            containerColor = Color(0xFFF7F6F0),
-            tonalElevation = 0.dp,
+            containerColor = MaterialTheme.colorScheme.surface,
+            tonalElevation = 3.dp,
             modifier = Modifier.height(IntrinsicSize.Min)
         ) {
             items.forEach { item ->
@@ -682,13 +528,19 @@ fun NavBar(navController: NavController) {
                             "Home" -> navController.navigate(GoodbooksDestinations.HOME_ROUTE)
                             "My Books" -> navController.navigate(GoodbooksDestinations.SHELF_ROUTE)
                             "Search" -> navController.navigate(GoodbooksDestinations.SEARCH_ROUTE)
-                            "Reviews" -> navController.navigate(GoodbooksDestinations.REVIEW_ROUTE)
+                            "Profile" -> navController.navigate(GoodbooksDestinations.PROFILE_ROUTE)
                         }
                     },
-//                       colors = NavigationBarItemColors(
-//                            iconColor = if (selected) MaterialTheme.colorScheme.primary else onSurfaceColor,
-//                            labelColor = if (selected) MaterialTheme.colorScheme.primary else onSurfaceColor
-//                        ),
+                    colors = NavigationBarItemColors(
+                        selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurface,
+                        disabledIconColor = MaterialTheme.colorScheme.onSurface,
+                        selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                        selectedIndicatorColor = MaterialTheme.colorScheme.secondaryContainer,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        disabledTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
+
                     interactionSource = MutableInteractionSource()
                 )
             }
@@ -853,101 +705,109 @@ fun BookListItemPreview() {
 }
 
 @Composable
-fun MenuSample() {
-    var expanded by remember { mutableStateOf(false) }
-    val menuItems = listOf(
-        "Want to Read",
-        "Currently Reading",
-        "Read",
-    )
+fun MenuSample(
+    book: Book,
+    bookViewModel: BookViewModel,
+    context: Context
+) {
+    var userId = Firebase.auth.currentUser?.uid
+    var addbooksVisible by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var isReading by remember { mutableStateOf(false) }
+    var pagesInProgress by remember { mutableStateOf(0) }
+    LaunchedEffect(book.bookID) {
+        pagesInProgress = bookViewModel.getProgressReading(userId, book.bookID)
+    }
+    var openProgressDialog by remember { mutableStateOf(false) }
     var selectedItemIndex by remember { mutableStateOf(0) }
+    var itemSelected by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .wrapContentSize(Alignment.TopStart)
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-        OutlinedCard(modifier = Modifier.padding(15.dp)) {
-            Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .width(125.dp)
-                    .height(50.dp)
-                    .padding(3.dp)
-                    .clickable {
-                        expanded = true
-                    }
-            ) {
-                Text(
-                    text = menuItems[selectedItemIndex],
-                    fontFamily = poppinsFamily,
-                    fontSize = 13.sp
-
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.baseline_arrow_drop_down_24),
-                    colorFilter = ColorFilter.tint(Color.Black),
-                    contentDescription = "Arrow drop down"
-
-                )
-            }
-
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier.requiredSizeIn(maxHeight = 300.dp)
-            ) {
-                menuItems.forEachIndexed { index, item ->
-                    DropdownMenuItem(
-                        text = { Text(text = item) },
-                        onClick = {
-                            expanded = false
-                            selectedItemIndex = index
-
-                        },
-                        trailingIcon = {
-                            if (selectedItemIndex == index) {
-                                Icon(
-                                    imageVector = Icons.Filled.Check,
-                                    contentDescription = "Selected Icon"
-                                )
-                            }
-                        }
-                    )
-                }
-                HorizontalDivider()
-                DropdownMenuItem(
-                    text = { Text(text = "Remove from My Books") },
-                    onClick = {
-                        expanded = false
-                    }
-                )
-            }
+        Button(
+            onClick = { addbooksVisible = true },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                disabledContentColor = MaterialTheme.colorScheme.onPrimary
+            )
+        ) {
+            Text("Add")
         }
+
+        AnimatedVisibility(
+            visible = addbooksVisible,
+            enter = slideInVertically() + expandVertically(
+                expandFrom = Alignment.Top
+            ) + fadeIn(initialAlpha = 0.3f),
+            exit = slideOutVertically() + shrinkVertically() + fadeOut()
+        ) {
+            AddBooksScreen(
+                onOptionSelected = { selected, answer ->
+                    itemSelected = selected
+                    selectedItemIndex = answer
+                },
+                onDismiss = { addbooksVisible = false },
+                book = book,
+                bookViewModel = bookViewModel,
+                context = context
+            )
+        }
+
+        Button(
+            onClick = { openProgressDialog = true },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                disabledContentColor = MaterialTheme.colorScheme.onPrimary
+            )
+        ) {
+            Text("Update your progress")
+        }
+
+        AnimatedVisibility(
+            visible = openProgressDialog,
+            enter = slideInVertically() + expandVertically(
+                expandFrom = Alignment.Top
+            ) + fadeIn(initialAlpha = 0.3f),
+            exit = slideOutVertically() + shrinkVertically() + fadeOut()
+        ) {
+            ProgressDialog(
+                book = book,
+                onDismiss = { openProgressDialog = false },
+                pagesInProgress = pagesInProgress,
+                bookViewModel = bookViewModel,
+                userId = userId
+            )
+        }
+
+        // Progress Bar
+        val progress = if (book.pageCount > 0) pagesInProgress.toFloat() / book.pageCount else 0f
+
+        LinearProgressIndicator(
+            progress = { progress },
+            modifier = Modifier
+                .fillMaxWidth(0.5f) // Adjust this value to change the width
+                .padding(top = 16.dp),
+        )
+
+        // Display progress percentage
+        Text(
+            text = "${(progress * 100).toInt()}%",
+            modifier = Modifier
+                .padding(vertical = 5.dp)
+                .align(Alignment.CenterHorizontally)
+        )
+
     }
 }
 
-
-@Preview
 @Composable
-fun DropdownDemoPreview() {
-    MenuSample()
-}
-
-/**
- * A composable function that displays an alert dialog with a title, details, a confirm button,
- * and a cancel button.
- */
-@Composable
-fun ShelvesAlertDialog(
+fun GoodbooksAlertDialog(
     openDialog: Boolean,
     title: String,
     details: String,
-    drawable: Int,
-    color: Color = Pink500,
-    size: Dp = 30.dp,
     onDismiss: () -> Unit,
     onClick: () -> Unit
 ) {
@@ -955,26 +815,22 @@ fun ShelvesAlertDialog(
         AlertDialog(
             onDismissRequest = onDismiss,
             shape = RoundedCornerShape(5.dp),
-            containerColor = MaterialTheme.colorScheme.background,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             title = {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Image(
-                        painter = painterResource(R.drawable.info),
-                        contentDescription = "Info",
-                        modifier = Modifier
-                            .size(size)
-                            .align(Alignment.CenterVertically),
-                        colorFilter = ColorFilter.tint(color)
+                    Icon(
+                        imageVector = Icons.Rounded.Warning,
+                        contentDescription = "Warning"
                     )
                     Text(
                         title,
                         fontSize = 16.sp,
                         fontFamily = poppinsFamily,
-                        color = MaterialTheme.colorScheme.onBackground,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Left
                     )
@@ -984,7 +840,7 @@ fun ShelvesAlertDialog(
                 Text(
                     modifier = Modifier.fillMaxWidth(),
                     text = details,
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 13.sp,
                     fontFamily = poppinsFamily,
                     fontWeight = FontWeight.Normal,
@@ -994,11 +850,11 @@ fun ShelvesAlertDialog(
             confirmButton = {
                 TextButton(onClick = onClick) {
                     Text(
-                        "Confirm",
+                        "Remove",
                         fontSize = 16.sp,
                         fontFamily = poppinsFamily,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Red
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             },
@@ -1009,10 +865,162 @@ fun ShelvesAlertDialog(
                         fontSize = 16.sp,
                         fontFamily = poppinsFamily,
                         fontWeight = FontWeight.Bold,
-                        color = Black
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
         )
     }
 }
+
+@Preview
+@Composable
+fun GoodbooksAlertDialogPreview() {
+    GoodbooksAlertDialog(
+        openDialog = true,
+        title = "Delete Book",
+        details = "Are you sure you want to delete this book?",
+        onDismiss = {},
+        onClick = {}
+    )
+}
+
+@Composable
+fun GoodbooksButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RoundedCornerShape(10.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            disabledContainerColor = MaterialTheme.colorScheme.onSurface
+        ),
+    ) {
+        Text(
+            text = text,
+            fontFamily = poppinsFamily,
+            fontSize = 15.sp,
+            color = Color.Black,
+            fontWeight = FontWeight.SemiBold
+        )
+    }
+}
+
+@Preview
+@Composable
+fun GoodbooksButtonPreview() {
+    GoodbooksButton(
+        text = "Add to My Books",
+        onClick = {},
+        modifier = Modifier
+            .height(40.dp)
+            .clip(RoundedCornerShape(20.dp))
+    )
+}
+
+@Composable
+fun ProgressDialog(
+    book: Book,
+    pagesInProgress: Int,
+    onDismiss: () -> Unit,
+    bookViewModel: BookViewModel,
+    userId: String?
+) {
+    var pages by remember { mutableIntStateOf(pagesInProgress) }
+    LaunchedEffect(pagesInProgress) {
+        pages = pagesInProgress
+    }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    navigationIcon = {
+                        androidx.compose.material.IconButton(onClick = onDismiss) {
+                            androidx.compose.material.Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = stringResource(id = R.string.close),
+                                tint = androidx.compose.material.MaterialTheme.colors.onSurface
+                            )
+                        }
+                    },
+                    title = {
+                        androidx.compose.material.Text(
+                            text = stringResource(id = R.string.label_progress),
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center,
+                            style = androidx.compose.material.MaterialTheme.typography.h6
+                        )
+                    },
+                    actions = {
+                        androidx.compose.material.IconButton(onClick =
+                        {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                bookViewModel.setProgressReading(userId, book.bookID, pages)
+                            }
+                            onDismiss()
+                        })
+                        {
+                            Icon(
+                                imageVector = Icons.Filled.Check,
+                                contentDescription = stringResource(id = R.string.close)
+                            )
+                        }
+                    },
+                    backgroundColor = androidx.compose.material.MaterialTheme.colors.surface,
+                )
+            },
+            modifier = Modifier
+                .width(300.dp)
+                .height(500.dp)
+        ) { innerPadding ->
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                androidx.compose.material.Text(
+                    text = "On Page",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                )
+
+                val keyboardController = LocalSoftwareKeyboardController.current
+                val focusManager = LocalFocusManager.current
+
+                OutlinedTextField(
+                    value = pages.toString(),
+                    onValueChange = { input ->
+                        pages = if (input.isNotEmpty()) input.toInt() else 0
+                    },
+                    singleLine = true,
+                    modifier = Modifier.width(75.dp),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            keyboardController?.hide()
+                            focusManager.clearFocus()
+                        })
+                )
+
+                Text(
+                    text = "of ${book.pageCount}",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                )
+            }
+        }
+    }
+}
+

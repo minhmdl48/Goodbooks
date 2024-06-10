@@ -31,8 +31,6 @@ class HomeViewModel : ViewModel() {
                             books.value = shelf.books as MutableList<Book>
                         }
                     }
-                } else {
-                    Log.e("HomeViewModel", "No such document")
                 }
                 onDone()
             }.addOnFailureListener {

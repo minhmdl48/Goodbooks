@@ -4,10 +4,20 @@
     <string name="cd_back">Back</string>
     <string name="cd_more">More</string>
     <string name="see_more">see more</string>
-
+    <string name="label_add_book">Add to My books</string>
     <string name="book_description">Book Description</string>
-
-    <string name="nav_home">Home</string>
-    <string name="nav_mybooks">My Books</string>
-    <string name="nav_search">Search</string>
+    <string name="close">Close</string>
+    <string name="want_to_read">Want to read</string>
+    <string name="read">Read</string>
+    <string name="reading">Currently reading</string>
+    <string name="save">Save</string>
+    <string name="home">Home</string>
+    <string name="home_mybooks">My Books</string>
+    <string name="profile">Profile</string>
+    <string name="label_search">Search Goodbooks</string>
+    <string name="search_goodbooks">Title, author or ISBN</string>
+    <string name="label_back">Back</string>
+    <string name="label_progress">Progress update</string>
+    <string name="search_count">%1d items</string>
+    <string name="home_search">Search</string>
 </resources>
