@@ -1,5 +1,8 @@
 package com.minhmdl.goodbooks.model
 
+import com.google.firebase.Timestamp
+import java.time.LocalDate
+
 data class User(
     val displayName: String,
     val userID: String,
@@ -8,7 +11,8 @@ data class User(
     val searchHistory: List<String>,
     val reviews: List<Review>,
     val favourites: List<Book>,
-    val progressReading: List<progressReading>
+    val progressReading: List<progressReading>,
+    val dates: List<dateTime>
 )
 {
     // Add a no-argument constructor
@@ -16,6 +20,7 @@ data class User(
         "",
         "",
         "",
+        mutableListOf(),
         mutableListOf(),
         mutableListOf(),
         mutableListOf(),
@@ -34,12 +39,11 @@ data class Shelf(
 
 
 data class Review(
-    val book: Book,
-    val rating: Double,
-    val reviewText: String
+    val bookId: String,
+    var reviewText: String
 ){
     // Add a no-argument constructor
-    constructor() : this(Book(), 0.0, "")
+    constructor() : this("", "")
 }
 
 data class progressReading(
@@ -48,4 +52,12 @@ data class progressReading(
 ){
     // Add a no-argument constructor
     constructor() : this("", 0)
+}
+data class dateTime(
+    val bookId: String,
+    var date: String
+)
+{
+    // Add a no-argument constructor
+    constructor() : this("", "")
 }

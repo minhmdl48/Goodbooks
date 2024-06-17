@@ -196,13 +196,11 @@ fun Details( book: Book, bookViewModel: BookViewModel) {
             genre = genre,
             pages = pages,
             isbn = isbn,
-            description = description
+            description = description,
+            book = book,
+            bookViewModel = bookViewModel
         )
-        MenuSample(
-            book,
-            bookViewModel,
-            context = LocalContext.current
-        )
+
     }
 }
 
@@ -242,7 +240,9 @@ fun BookDescription(
     genre: String,
     isbn: String,
     pages: String,
-    description: String
+    description: String,
+    book: Book,
+    bookViewModel: BookViewModel
 ) {
     var restOfText by remember { mutableStateOf("") }
     val firstParagraph = description.substringBefore("\n\n")
@@ -456,6 +456,20 @@ fun BookDescription(
                     .padding(vertical = 2.dp),
                 color = Gray200
             )
+
+            MenuSample(
+                book,
+                bookViewModel,
+                context = LocalContext.current
+            )
+
+            HorizontalDivider(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 2.dp),
+                color = Gray200
+            )
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

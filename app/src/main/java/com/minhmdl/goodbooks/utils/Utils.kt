@@ -19,16 +19,6 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-/**
-
-A composable function that returns a [ManagedActivityResultLauncher] to launch the Firebase authentication flow
-with Google Sign-In provider. This function handles the result of the authentication flow and calls the
-[onAuthComplete] callback if the authentication is successful, or [onAuthError] if an error occurs.
- * @param onAuthComplete a lambda function that will be called with the [AuthResult] if the authentication is successful.
- * @param onAuthError a lambda function that will be called with the [ApiException] if an error occurs during the authentication flow.
- * @return a [ManagedActivityResultLauncher] instance that can be used to launch the Firebase authentication flow with Google Sign-In provider.
- */
-
 @Composable
 fun rememberFirebaseAuthLauncher(
     onAuthComplete: (AuthResult) -> Unit,

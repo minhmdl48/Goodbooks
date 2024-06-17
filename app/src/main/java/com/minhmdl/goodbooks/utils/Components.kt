@@ -1,6 +1,7 @@
 package com.minhmdl.goodbooks.utils
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -30,17 +31,18 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.Scaffold
+import androidx.compose.material.TextField
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Mode
 import androidx.compose.material.icons.outlined.InsertEmoticon
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.SentimentSatisfied
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.rounded.AlternateEmail
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -55,6 +57,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemColors
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -73,7 +76,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -87,6 +89,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -108,17 +111,12 @@ import com.minhmdl.goodbooks.screens.AddBooksScreen
 import com.minhmdl.goodbooks.screens.book.BookViewModel
 import com.minhmdl.goodbooks.ui.theme.Black
 import com.minhmdl.goodbooks.ui.theme.Gray200
-import com.minhmdl.goodbooks.ui.theme.Gray500
 import com.minhmdl.goodbooks.ui.theme.Green
 import com.minhmdl.goodbooks.ui.theme.iconColor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-
-/**
-EmailInput is a composable function that creates an email input field.
- */
 @Composable
 fun EmailInput(
     modifier: Modifier = Modifier,
@@ -138,10 +136,6 @@ fun EmailInput(
         onAction = onAction
     )
 }
-
-/**
-NameInput is a composable function that creates an input field for a user's name.
- */
 
 @Composable
 fun NameInput(
@@ -199,10 +193,6 @@ fun NameInput(
         )
     )
 }
-
-/**
-PasswordInput is a composable function that creates a password input field.
- */
 
 @Composable
 fun PasswordInput(
@@ -282,9 +272,6 @@ fun PasswordInput(
     )
 }
 
-/**
-PasswordVisibility is a composable function that creates a button to toggle the visibility of the password input field.
- */
 @Composable
 fun PasswordVisibility(passwordVisibility: MutableState<Boolean>) {
     val visible = passwordVisibility.value
@@ -304,10 +291,6 @@ fun PasswordVisibility(passwordVisibility: MutableState<Boolean>) {
         }
     }
 }
-
-/**
-EmailInputField is a composable function that creates an input field for a user's email address.
- */
 
 @Composable
 fun EmailInputField(
@@ -377,9 +360,6 @@ fun EmailInputField(
     )
 }
 
-/**
-SubmitButton is a composable function that creates a button for submitting a form.
- */
 @Composable
 fun SubmitButton(textId: String, loading: Boolean, validInputs: Boolean, onClick: () -> Unit) {
     Button(
@@ -415,11 +395,6 @@ fun SubmitButton(textId: String, loading: Boolean, validInputs: Boolean, onClick
             }
     }
 }
-
-
-/**
-A Composable function that displays a category with an image and a text label.
- */
 
 @Composable
 fun Category(category: String, image: Int, onClick: () -> Unit) {
@@ -483,6 +458,12 @@ fun NavBar(navController: NavController) {
             unselectedIcon = R.drawable.ic_search
         ),
         BottomNavItem(
+            name = stringResource(id = R.string.stats),
+            route = GoodbooksDestinations.STATS_ROUTE,
+            selectedIcon = R.drawable.ic_pie_chart_selected,
+            unselectedIcon = R.drawable.ic_pie_chart
+        ),
+        BottomNavItem(
             name = stringResource(id = R.string.profile),
             route = GoodbooksDestinations.PROFILE_ROUTE,
             selectedIcon = R.drawable.ic_profile_selected,
@@ -516,17 +497,13 @@ fun NavBar(navController: NavController) {
                                 .background(color = Color.Transparent)
                         )
                     },
-                    label = {
-                        Text(
-                            item.name, fontFamily = poppinsFamily,
-                            fontSize = 13.sp,
-                        )
-                    },
+                    label = {},
                     selected = selected,
                     onClick = {
                         when (item.name) {
                             "Home" -> navController.navigate(GoodbooksDestinations.HOME_ROUTE)
                             "My Books" -> navController.navigate(GoodbooksDestinations.SHELF_ROUTE)
+                            "Statistics" -> navController.navigate(GoodbooksDestinations.STATS_ROUTE)
                             "Search" -> navController.navigate(GoodbooksDestinations.SEARCH_ROUTE)
                             "Profile" -> navController.navigate(GoodbooksDestinations.PROFILE_ROUTE)
                         }
@@ -553,75 +530,6 @@ fun NavBar(navController: NavController) {
 fun NavBarPreview() {
     NavBar(navController = rememberNavController())
 }
-
-@Composable
-fun SearchInputField(
-    valueState: MutableState<String>,
-    labelId: String,
-    enabled: Boolean,
-    isSingleLine: Boolean,
-    keyBoardType: KeyboardType = KeyboardType.Ascii,
-    imeAction: ImeAction = ImeAction.Done,
-    onAction: KeyboardActions = KeyboardActions.Default
-) {
-    OutlinedTextField(
-        value = valueState.value,
-        onValueChange = {
-            valueState.value = it
-        },
-        leadingIcon = {
-            Image(
-                painter = painterResource(id = R.drawable.search),
-                contentDescription = "Search",
-                modifier = Modifier
-                    .size(30.dp)
-                    .background(color = Color.Transparent),
-                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
-            )
-        },
-        trailingIcon = {
-            IconButton(onClick = { valueState.value = "" }) {
-                Icon(
-                    imageVector = Icons.Rounded.Close,
-                    contentDescription = "Clear",
-                    tint = MaterialTheme.colorScheme.onBackground
-                )
-            }
-        },
-        singleLine = isSingleLine,
-        textStyle = TextStyle(fontSize = 15.sp, fontFamily = poppinsFamily),
-        enabled = enabled,
-        keyboardOptions = KeyboardOptions(keyboardType = keyBoardType, imeAction = imeAction),
-        keyboardActions = onAction,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 10.dp),
-        placeholder = { Text(text = labelId, fontFamily = poppinsFamily, fontSize = 15.sp) },
-        shape = RoundedCornerShape(11.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-            cursorColor = Black,
-            focusedBorderColor = Black,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-            focusedLabelColor = MaterialTheme.colorScheme.primary,
-            unfocusedLabelColor = MaterialTheme.colorScheme.outline,
-            focusedLeadingIconColor = Black,
-            unfocusedLeadingIconColor = MaterialTheme.colorScheme.outline,
-            focusedPlaceholderColor = Gray500,
-            selectionColors = TextSelectionColors(
-                handleColor = Black,
-                backgroundColor = Green
-            )
-
-        )
-    )
-}
-
-/*
-A composable function that displays a search card with book details.
-The card contains an image, book title, author, and a preview text.
-Clicking the card triggers the onClick function.
- */
 
 @Composable
 fun BookListItem(
@@ -693,35 +601,35 @@ fun BookListItem(
     )
 }
 
-@Preview
-@Composable
-fun BookListItemPreview() {
-    BookListItem(
-        bookTitle = "The Complete sherlock Holmes: Volume II",
-        bookAuthor = "F. Scott Fitzgerald",
-        imageUrl = "https://m.media-amazon.com/images/I/81QuEGw8VPL._AC_UF1000,1000_QL80_.jpg",
-        onClick = {}
-    )
-}
-
 @Composable
 fun MenuSample(
     book: Book,
     bookViewModel: BookViewModel,
     context: Context
 ) {
-    var userId = Firebase.auth.currentUser?.uid
+    val userId = Firebase.auth.currentUser?.uid
     var addbooksVisible by rememberSaveable {
         mutableStateOf(false)
     }
+    var reviewText by remember { mutableStateOf("") }
+    var isDone by remember { mutableStateOf(false) }
     var isReading by remember { mutableStateOf(false) }
     var pagesInProgress by remember { mutableStateOf(0) }
     LaunchedEffect(book.bookID) {
         pagesInProgress = bookViewModel.getProgressReading(userId, book.bookID)
+        if (bookViewModel.getShelfName(userId, book) == "Currently Reading") {
+            isReading = true
+        }
+        if (bookViewModel.getShelfName(userId, book) == "Read") {
+            isDone = true
+        }
+        reviewText = bookViewModel.getReview(userId, book.bookID)
     }
     var openProgressDialog by remember { mutableStateOf(false) }
+    var openReviewDialog by remember { mutableStateOf(false) }
     var selectedItemIndex by remember { mutableStateOf(0) }
     var itemSelected by remember { mutableStateOf(false) }
+
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -755,51 +663,98 @@ fun MenuSample(
                 context = context
             )
         }
+        if (isDone) {
+            if (reviewText != "") {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
-        Button(
-            onClick = { openProgressDialog = true },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                disabledContentColor = MaterialTheme.colorScheme.onPrimary
-            )
-        ) {
-            Text("Update your progress")
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+
+                        Text(
+                            text = "Your review",
+                            modifier = Modifier.padding(start = 2.dp),
+                            fontSize = 17.sp,
+                            textDecoration = TextDecoration.Underline
+                        )
+                        IconButton(onClick = { openReviewDialog = true }) {
+                            Icon(imageVector = Icons.Filled.Mode, contentDescription = null)
+                        }
+                    }
+
+                    TextField(value = reviewText, onValueChange = {}, readOnly = true)
+                }
+            } else {
+                Button(
+                    onClick = { openReviewDialog = true },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        disabledContentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    Text("Write a Review")
+                }
+            }
+            AnimatedVisibility(
+                visible = openReviewDialog,
+                enter = slideInVertically() + expandVertically(
+                    expandFrom = Alignment.Top
+                ) + fadeIn(initialAlpha = 0.3f),
+                exit = slideOutVertically() + shrinkVertically() + fadeOut()
+            ) {
+                ReviewDialog(
+                    book,
+                    reviewText,
+                    onDismiss = { openReviewDialog = false },
+                    bookViewModel,
+                    userId
+                )
+            }
+            DatePickerWithDialog(modifier = Modifier.padding(5.dp),bookViewModel, book)
+
         }
+        if (isReading) {
+            OutlinedButton(
+                onClick = { openProgressDialog = true },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    disabledContentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            ) {
+                Text("Update your progress")
+            }
 
-        AnimatedVisibility(
-            visible = openProgressDialog,
-            enter = slideInVertically() + expandVertically(
-                expandFrom = Alignment.Top
-            ) + fadeIn(initialAlpha = 0.3f),
-            exit = slideOutVertically() + shrinkVertically() + fadeOut()
-        ) {
-            ProgressDialog(
-                book = book,
-                onDismiss = { openProgressDialog = false },
-                pagesInProgress = pagesInProgress,
-                bookViewModel = bookViewModel,
-                userId = userId
+            AnimatedVisibility(
+                visible = openProgressDialog,
+                enter = slideInVertically() + expandVertically(
+                    expandFrom = Alignment.Top
+                ) + fadeIn(initialAlpha = 0.3f),
+                exit = slideOutVertically() + shrinkVertically() + fadeOut()
+            ) {
+                ProgressDialog(
+                    book = book,
+                    onDismiss = { openProgressDialog = false },
+                    pagesInProgress = pagesInProgress,
+                    bookViewModel = bookViewModel,
+                    userId = userId
+                )
+            }
+
+            val progress =
+                if (book.pageCount > 0) pagesInProgress.toFloat() / book.pageCount else 0f
+
+            LinearProgressIndicator(
+                progress = { progress },
+                modifier = Modifier
+                    .fillMaxWidth(0.5f)
+                    .padding(top = 16.dp),
+            )
+
+            Text(
+                text = "${(progress * 100).toInt()}%",
+                modifier = Modifier
+                    .padding(vertical = 5.dp)
+                    .align(Alignment.CenterHorizontally)
             )
         }
-
-        // Progress Bar
-        val progress = if (book.pageCount > 0) pagesInProgress.toFloat() / book.pageCount else 0f
-
-        LinearProgressIndicator(
-            progress = { progress },
-            modifier = Modifier
-                .fillMaxWidth(0.5f) // Adjust this value to change the width
-                .padding(top = 16.dp),
-        )
-
-        // Display progress percentage
-        Text(
-            text = "${(progress * 100).toInt()}%",
-            modifier = Modifier
-                .padding(vertical = 5.dp)
-                .align(Alignment.CenterHorizontally)
-        )
-
     }
 }
 
@@ -873,18 +828,6 @@ fun GoodbooksAlertDialog(
     }
 }
 
-@Preview
-@Composable
-fun GoodbooksAlertDialogPreview() {
-    GoodbooksAlertDialog(
-        openDialog = true,
-        title = "Delete Book",
-        details = "Are you sure you want to delete this book?",
-        onDismiss = {},
-        onClick = {}
-    )
-}
-
 @Composable
 fun GoodbooksButton(
     text: String,
@@ -908,18 +851,6 @@ fun GoodbooksButton(
             fontWeight = FontWeight.SemiBold
         )
     }
-}
-
-@Preview
-@Composable
-fun GoodbooksButtonPreview() {
-    GoodbooksButton(
-        text = "Add to My Books",
-        onClick = {},
-        modifier = Modifier
-            .height(40.dp)
-            .clip(RoundedCornerShape(20.dp))
-    )
 }
 
 @Composable
@@ -1024,3 +955,93 @@ fun ProgressDialog(
     }
 }
 
+@Composable
+fun ReviewDialog(
+    book: Book,
+    reviewText: String,
+    onDismiss: () -> Unit,
+    bookViewModel: BookViewModel,
+    userId: String?
+) {
+    var review by remember { mutableStateOf(reviewText) }
+    LaunchedEffect(reviewText) {
+        review = reviewText
+    }
+    Dialog(onDismissRequest = onDismiss) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    navigationIcon = {
+                        androidx.compose.material.IconButton(onClick = onDismiss) {
+                            androidx.compose.material.Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = stringResource(id = R.string.close),
+                                tint = androidx.compose.material.MaterialTheme.colors.onSurface
+                            )
+                        }
+                    },
+                    title = {
+                        androidx.compose.material.Text(
+                            text = stringResource(id = R.string.label_review),
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center,
+                            style = androidx.compose.material.MaterialTheme.typography.h6
+                        )
+                    },
+                    actions = {
+                        androidx.compose.material.IconButton(onClick =
+                        {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                bookViewModel.setReviewReading(userId, book.bookID, review)
+                            }
+                            onDismiss()
+                        })
+                        {
+                            Icon(
+                                imageVector = Icons.Filled.Check,
+                                contentDescription = stringResource(id = R.string.close)
+                            )
+                        }
+                    },
+                    backgroundColor = androidx.compose.material.MaterialTheme.colors.surface,
+                )
+            },
+            modifier = Modifier
+                .height(500.dp)
+                .width(350.dp)
+        ) { innerPadding ->
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                verticalArrangement = Arrangement.Center
+
+            ) {
+
+                val keyboardController = LocalSoftwareKeyboardController.current
+                val focusManager = LocalFocusManager.current
+
+                OutlinedTextField(
+                    value = review,
+                    onValueChange = { review = it },
+                    singleLine = false,
+                    modifier = Modifier
+                        .width(300.dp)
+                        .height(200.dp)
+                        .align(Alignment.CenterHorizontally),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            keyboardController?.hide()
+                            focusManager.clearFocus()
+                        }
+                    ),
+                    label = { Text("Write a Review") }
+                )
+            }
+        }
+    }
+}

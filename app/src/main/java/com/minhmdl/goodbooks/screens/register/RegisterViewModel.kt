@@ -17,6 +17,7 @@ import com.minhmdl.goodbooks.model.Book
 import com.minhmdl.goodbooks.model.Review
 import com.minhmdl.goodbooks.model.Shelf
 import com.minhmdl.goodbooks.model.User
+import com.minhmdl.goodbooks.model.dateTime
 import com.minhmdl.goodbooks.model.progressReading
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -116,7 +117,7 @@ class RegisterViewModel @Inject constructor(
         val reviews: MutableList<Review> = mutableListOf()
         val favourites: MutableList<Book> = mutableListOf()
         val progressReading: MutableList<progressReading> = mutableListOf()
-
+        val dates: MutableList<dateTime> = mutableListOf()
         if (userId != null) {
             val user = User(
                 userID = userId.toString(),
@@ -126,7 +127,8 @@ class RegisterViewModel @Inject constructor(
                 searchHistory = searchHistory,
                 reviews = reviews,
                 favourites = favourites,
-                progressReading = progressReading
+                progressReading = progressReading,
+                dates = dates
             )
             val userRef = FirebaseFirestore.getInstance().collection("users").document(userId)
             Log.e("RegisterViewModel","path to doc:  ${userRef.path}")

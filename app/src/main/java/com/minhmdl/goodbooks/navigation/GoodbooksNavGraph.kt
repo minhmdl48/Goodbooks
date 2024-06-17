@@ -28,13 +28,15 @@ import com.minhmdl.goodbooks.screens.search.SearchScreen
 import com.minhmdl.goodbooks.screens.search.SearchViewModel
 import com.minhmdl.goodbooks.screens.shelf.ShelfScreen
 import com.minhmdl.goodbooks.screens.shelf.ShelfViewModel
+import com.minhmdl.goodbooks.screens.stats.StatsScreen
+import com.minhmdl.goodbooks.screens.stats.StatsViewModel
 
 
 @Composable
 fun GoodbooksNavGraph() {
 
     val navController: NavHostController = rememberNavController()
-
+    val statsViewModel: StatsViewModel = viewModel()
     val searchViewModel: SearchViewModel = viewModel()
     val shelfViewModel: ShelfViewModel = viewModel()
     val loginViewModel: LoginViewModel = viewModel()
@@ -76,6 +78,9 @@ fun GoodbooksNavGraph() {
         }
         composable(GoodbooksDestinations.PROFILE_ROUTE){
             ProfileScreen(navController = navController)
+        }
+        composable(GoodbooksDestinations.STATS_ROUTE) {
+            StatsScreen(navController = navController, statsViewModel= statsViewModel)
         }
 
         val route = GoodbooksDestinations.CATEGORY_ROUTE

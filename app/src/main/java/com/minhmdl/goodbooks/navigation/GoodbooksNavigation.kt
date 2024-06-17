@@ -10,6 +10,7 @@ import com.minhmdl.goodbooks.navigation.GoodbooksScreens.REVIEW_SCREEN
 import com.minhmdl.goodbooks.navigation.GoodbooksScreens.SEARCH_SCREEN
 import com.minhmdl.goodbooks.navigation.GoodbooksScreens.SHELF_SCREEN
 import com.minhmdl.goodbooks.navigation.GoodbooksScreens.SPLASH_SCREEN
+import com.minhmdl.goodbooks.navigation.GoodbooksScreens.STATS_SCREEN
 
 private object GoodbooksScreens{
     const val SPLASH_SCREEN = "splash"
@@ -23,6 +24,7 @@ private object GoodbooksScreens{
     const val REVIEW_SCREEN = "review"
     const val LOGIN_SCREEN = "login"
     const val PROFILE_SCREEN = "profile"
+    const val STATS_SCREEN = "statistics"
 }
 
 object GoodbooksDestinations {
@@ -39,5 +41,6 @@ object GoodbooksDestinations {
     const val PROFILE_ROUTE = PROFILE_SCREEN
     const val FORGOT_PASSWORD_ROUTE = "forgotPassword"
     const val USER_ROUTE= "user"
+    const val STATS_ROUTE = STATS_SCREEN
 }
 

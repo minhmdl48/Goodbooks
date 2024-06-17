@@ -101,10 +101,6 @@ dependencies {
     //Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
 
-//    //Moshi
-//    implementation("com.squareup.moshi:moshi:1.15.1")
-//    implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
-
     //GSON converter
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("androidx.palette:palette:1.0.0")
@@ -120,5 +116,9 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics-ktx:21.3.0")
     implementation("com.google.firebase:firebase-auth-ktx:22.3.0")
     implementation("com.google.firebase:firebase-firestore-ktx:24.7.1")
+
+    implementation("com.patrykandpatrick.vico:compose:1.8.0")
+    implementation("com.patrykandpatrick.vico:compose-m3:1.8.0")
+    implementation("com.patrykandpatrick.vico:core:1.8.0")
 
 }
