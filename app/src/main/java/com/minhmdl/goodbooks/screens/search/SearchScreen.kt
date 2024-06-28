@@ -1,5 +1,6 @@
 package com.minhmdl.goodbooks.screens.search
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -36,8 +38,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.grayseal.bookshelf.ui.theme.poppinsFamily
+import com.minhmdl.goodbooks.R
 import com.minhmdl.goodbooks.model.Book
 import com.minhmdl.goodbooks.navigation.GoodbooksDestinations
 import com.minhmdl.goodbooks.ui.theme.GreenIndicator
@@ -52,13 +60,28 @@ fun SearchScreen(
     Scaffold(content = { padding ->
         Column(
             modifier = Modifier
-                .padding(top = 200.dp,),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+                .fillMaxWidth()
+                .fillMaxHeight(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Text(
-                text = "Search Screen"
+            Image(
+                painter = painterResource(id = R.drawable.ic_search1),
+                contentDescription = "Search",
+                modifier = Modifier
+                    .size(80.dp)
+                    .padding(bottom = 20.dp)
             )
-        }
+            Text(
+                "See new releases, most-read books, quotes, lists, and more in these popular genres.",
+                fontFamily = poppinsFamily,
+                fontSize = 16.sp,
+                maxLines=2,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
+            )
+            }
     },
         bottomBar = {
             NavBar(navController)

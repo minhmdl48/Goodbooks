@@ -74,7 +74,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -142,8 +141,7 @@ fun NameInput(
     nameState: MutableState<String>,
     labelId: String = "Name",
     enabled: Boolean = true,
-    imeAction: ImeAction = ImeAction.Next,
-    onAction: KeyboardActions = KeyboardActions.Default
+    imeAction: ImeAction = ImeAction.Next
 ) {
     var icon by remember {
         mutableStateOf(Icons.Outlined.SentimentSatisfied)
@@ -429,13 +427,6 @@ fun Category(category: String, image: Int, onClick: () -> Unit) {
     }
 }
 
-@Preview
-@Composable
-fun CategoryPreview() {
-    Category("Fiction", R.drawable.finance) {}
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NavBar(navController: NavController) {
     val items = listOf(
@@ -614,35 +605,58 @@ fun MenuSample(
     var reviewText by remember { mutableStateOf("") }
     var isDone by remember { mutableStateOf(false) }
     var isReading by remember { mutableStateOf(false) }
-    var pagesInProgress by remember { mutableStateOf(0) }
-    LaunchedEffect(book.bookID) {
-        pagesInProgress = bookViewModel.getProgressReading(userId, book.bookID)
-        if (bookViewModel.getShelfName(userId, book) == "Currently Reading") {
+    var pagesInProgress by remember { mutableIntStateOf(0) }
+    var shelfName by remember { mutableStateOf("Add to My Books") }
+
+    LaunchedEffect(book) {
+        launch {
+            bookViewModel.getProgressReading(userId, book.bookID).collect { progress ->
+                pagesInProgress = progress
+            }
+        }
+        launch {
+            bookViewModel.getShelfName(userId, book).collect { shelfname ->
+                shelfName = shelfname
+            }
+        }
+        launch {
+            bookViewModel.getReview(userId, book.bookID).collect { review ->
+                // Handle the review text
+                reviewText = review
+            }
+        }
+    }
+    Log.d("Menu", "shelfname: $shelfName")
+    when (shelfName) {
+        "Currently Reading" -> {
             isReading = true
         }
-        if (bookViewModel.getShelfName(userId, book) == "Read") {
+
+        "Read" -> {
             isDone = true
         }
-        reviewText = bookViewModel.getReview(userId, book.bookID)
+
+        "" -> {
+            shelfName = "Add to My Books"
+        }
     }
     var openProgressDialog by remember { mutableStateOf(false) }
     var openReviewDialog by remember { mutableStateOf(false) }
-    var selectedItemIndex by remember { mutableStateOf(0) }
-    var itemSelected by remember { mutableStateOf(false) }
-
 
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Button(
+        OutlinedButton(
             onClick = { addbooksVisible = true },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                disabledContentColor = MaterialTheme.colorScheme.onPrimary
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.primary
             )
         ) {
-            Text("Add")
+            Text(text = "$shelfName")
+            if (shelfName != "Add to My Books") {
+                Icon(imageVector = Icons.Filled.Check, contentDescription = "check")
+            }
         }
 
         AnimatedVisibility(
@@ -653,10 +667,6 @@ fun MenuSample(
             exit = slideOutVertically() + shrinkVertically() + fadeOut()
         ) {
             AddBooksScreen(
-                onOptionSelected = { selected, answer ->
-                    itemSelected = selected
-                    selectedItemIndex = answer
-                },
                 onDismiss = { addbooksVisible = false },
                 book = book,
                 bookViewModel = bookViewModel,
@@ -703,20 +713,23 @@ fun MenuSample(
                 ReviewDialog(
                     book,
                     reviewText,
-                    onDismiss = { openReviewDialog = false },
+                    onDismiss = {
+                        openReviewDialog = false
+                    },
                     bookViewModel,
                     userId
                 )
             }
-            DatePickerWithDialog(modifier = Modifier.padding(5.dp),bookViewModel, book)
+            DatePickerWithDialog(modifier = Modifier.padding(5.dp), bookViewModel, book)
 
         }
         if (isReading) {
             OutlinedButton(
-                onClick = { openProgressDialog = true },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    disabledContentColor = MaterialTheme.colorScheme.onPrimary
+                onClick = {
+                    openProgressDialog = true
+                },
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.primary
                 )
             ) {
                 Text("Update your progress")
@@ -731,7 +744,9 @@ fun MenuSample(
             ) {
                 ProgressDialog(
                     book = book,
-                    onDismiss = { openProgressDialog = false },
+                    onDismiss = {
+                        openProgressDialog = false
+                    },
                     pagesInProgress = pagesInProgress,
                     bookViewModel = bookViewModel,
                     userId = userId
@@ -829,31 +844,6 @@ fun GoodbooksAlertDialog(
 }
 
 @Composable
-fun GoodbooksButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Button(
-        onClick = onClick,
-        modifier = modifier,
-        shape = RoundedCornerShape(10.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            disabledContainerColor = MaterialTheme.colorScheme.onSurface
-        ),
-    ) {
-        Text(
-            text = text,
-            fontFamily = poppinsFamily,
-            fontSize = 15.sp,
-            color = Color.Black,
-            fontWeight = FontWeight.SemiBold
-        )
-    }
-}
-
-@Composable
 fun ProgressDialog(
     book: Book,
     pagesInProgress: Int,
@@ -907,18 +897,19 @@ fun ProgressDialog(
             },
             modifier = Modifier
                 .width(300.dp)
-                .height(500.dp)
+                .height(300.dp)
         ) { innerPadding ->
-            Column(
+
+            Row(
                 Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
+                    .padding(innerPadding),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 androidx.compose.material.Text(
                     text = "On Page",
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier
-                        .fillMaxWidth()
                         .padding(16.dp)
                 )
 
@@ -947,10 +938,10 @@ fun ProgressDialog(
                     text = "of ${book.pageCount}",
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier
-                        .fillMaxWidth()
                         .padding(16.dp)
                 )
             }
+
         }
     }
 }

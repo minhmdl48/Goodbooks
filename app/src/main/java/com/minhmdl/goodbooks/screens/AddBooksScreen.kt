@@ -57,13 +57,11 @@ import kotlinx.coroutines.launch
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun AddBooksScreen(
-    onOptionSelected: (selected: Boolean, answer: Int) -> Unit,
     onDismiss: () -> Unit,
     book: Book,
     bookViewModel: BookViewModel,
     context: Context
 ) {
-    var otherShelfName by remember { mutableStateOf("") }
     val userId = Firebase.auth.currentUser?.uid ?: ""
     val showDialog = remember { mutableStateOf(false) }
     val possibleAnswers = listOf(
@@ -74,9 +72,12 @@ fun AddBooksScreen(
     val selectedStates = remember { mutableStateListOf(false, false, false) }
     var shelfName1 by remember { mutableStateOf("") }
 
-    LaunchedEffect(key1 = book?.bookID) {
-        shelfName1 =
-            book?.let { bookViewModel.getShelfName(Firebase.auth.currentUser?.uid, it) }.toString()
+    LaunchedEffect(key1 = book) {
+        book.let {
+            bookViewModel.getShelfName(Firebase.auth.currentUser?.uid, it).collect { shelfName ->
+                shelfName1 = shelfName
+            }
+        }
     }
 
     val index = possibleAnswers.indexOf(shelfName1)
@@ -116,14 +117,12 @@ fun AddBooksScreen(
                             onClick = {
                                 /* TODO: Open search */
                                 CoroutineScope(Dispatchers.IO).launch {
+                                    bookViewModel.deleteABookInShelf(userId, book, shelfName1)
                                     bookViewModel.addBook(
                                         userId,
                                         selectedAnswers.value,
                                         book,
-                                        context,
-                                        shelfExists = { shelfExistsName ->
-                                            otherShelfName = shelfExistsName
-                                        }
+                                        context
                                     )
                                 }
                                 onDismiss()
@@ -178,17 +177,20 @@ fun AddBooksScreen(
                         openDialog = showDialog.value,
                         title = "Remove book and all related activity?",
                         details = "Removing a book from your shelves deletes any ratings, reviews, or updates you've made associated with this book. This can't be undone.",
-                        onDismiss = { showDialog.value = false },
+                        onDismiss = {
+                            showDialog.value = false
+                            onDismiss()        },
                         onClick = {
                             showDialog.value = false
+
                             CoroutineScope(Dispatchers.IO).launch {
-                                val shelfName = bookViewModel.getShelfName(userId, book)
                                 bookViewModel.deleteABookInShelf(
                                     userId,
                                     book,
-                                    shelfName = shelfName
+                                    shelfName = shelfName1
                                 )
                             }
+                            onDismiss()
                         }
                     )
                 }

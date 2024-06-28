@@ -9,10 +9,10 @@ This map is used to display category icons in the BookShelf app. Each key in the
 and each value is an integer representing a drawable resource ID for the corresponding category icon.
  */
 val categories = mapOf(
-    "Finance" to R.drawable.finance,
-    "Education" to R.drawable.education,
-    "Philosophy" to R.drawable.philosophy,
-    "Food" to R.drawable.food,
-    "Technology" to R.drawable.technology,
+    "Finance" to R.drawable.ic_finance,
+    "History" to R.drawable.ic_history,
+    "Cookbooks" to R.drawable.ic_cookbooks,
+    "Science" to R.drawable.ic_science,
+    "Psychology" to R.drawable.ic_psychology
 
 )

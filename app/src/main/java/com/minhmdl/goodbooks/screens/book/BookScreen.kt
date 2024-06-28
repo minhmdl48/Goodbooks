@@ -4,6 +4,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -17,11 +18,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.StarHalf
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -38,6 +43,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -71,31 +77,52 @@ import com.minhmdl.goodbooks.ui.theme.Yellow
 import com.minhmdl.goodbooks.utils.DataOrException
 import com.minhmdl.goodbooks.utils.MenuSample
 import com.minhmdl.goodbooks.utils.NavBar
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun BookScreen(
     navController: NavController,
     bookViewModel: BookViewModel,
     bookId: String?
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val bookInfo = produceState(
         initialValue = DataOrException(loading = (true))
     ) {
         value = bookId?.let { bookViewModel.getBookInfo(it) }!!
     }.value
+    var isRefreshing by remember { mutableStateOf(false) }
+    val pullRefreshState = rememberPullRefreshState(refreshing = isRefreshing,
+        onRefresh = {
+            /*TODO*/
+            // Refresh logic here
+            isRefreshing = true
+            // Refresh your data
+            coroutineScope.launch {
+                bookId?.let { bookViewModel.getBookInfo(it) }
+                // After refreshing, set isRefreshing to false
+                isRefreshing = false
+            }
 
+        })
     val book = bookInfo.data
 
     Scaffold(
         topBar = {
             GoodbooksAppBar(navController)
         },
-        bottomBar = { NavBar(navController) }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier.padding(innerPadding),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+        Box(
+            modifier = Modifier
+                .padding(innerPadding)
+                .pullRefresh(pullRefreshState)
         ) {
+            PullRefreshIndicator(
+                refreshing = isRefreshing,
+                state = pullRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
             if (book != null) {
                 Details( book, bookViewModel)
             }
@@ -206,11 +233,11 @@ fun Details( book: Book, bookViewModel: BookViewModel) {
 
 @Composable
 fun BookImage(imageUrl: String) {
-    Column(modifier = Modifier.padding(25.dp)) {
+    Column(modifier = Modifier.padding(20.dp)) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 40.dp),
+                .padding(vertical = 30.dp),
             horizontalArrangement = Arrangement.Center
         ) {
             AsyncImage(
@@ -221,7 +248,7 @@ fun BookImage(imageUrl: String) {
                 contentDescription = "Book Image",
                 contentScale = ContentScale.Inside,
                 modifier = Modifier
-                    .padding(vertical = 15.dp)
+                    .padding(vertical = 10.dp)
                     .background(
                         color = Color.Transparent,
                         shape = RoundedCornerShape(5.dp)
@@ -295,7 +322,7 @@ fun BookDescription(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(10.dp),
+                    .padding(5.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {

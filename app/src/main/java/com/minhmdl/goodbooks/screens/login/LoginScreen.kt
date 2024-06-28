@@ -2,7 +2,6 @@ package com.minhmdl.goodbooks.screens.login
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,14 +9,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,12 +45,7 @@ import com.minhmdl.goodbooks.utils.PasswordInput
 import com.minhmdl.goodbooks.utils.SubmitButton
 import com.minhmdl.goodbooks.utils.isValidEmail
 
-/**
-Composable function to display a login screen.
- * @param navController The NavController used to navigate to different screens.
- * @param viewModel The viewModel containing logic for login and creating a user.
- * @param dataStore The dataStore used to store and retrieve user information.
- */
+
 @Composable
 fun LoginScreen(
     navController: NavController,
@@ -60,26 +53,16 @@ fun LoginScreen(
     dataStore: StoreUserName
 ) {
 
-    val showLoginForm = rememberSaveable {
-        mutableStateOf(true)
-    }
-
-    // Create a local mutable state to hold the value of the loading flag
     var loading by remember { mutableStateOf(false) }
 
-    // Observe the value of the loading LiveData and update the local state accordingly
     viewModel.loading.observeForever {
         loading = it
     }
     val context = LocalContext.current
-Column(
-   modifier = Modifier.fillMaxSize(),
-    verticalArrangement = Arrangement.Center,
-    horizontalAlignment = Alignment.CenterHorizontally
-) {
     Box(
         modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxSize()
+            .imePadding(),
         contentAlignment = Alignment.Center
     ) {
         Image(
@@ -88,7 +71,7 @@ Column(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .offset(y = 15.dp)
-                .size(200.dp), // specify the size you want
+                .size(200.dp),
             contentScale = ContentScale.Crop
         )
         Column(
@@ -114,11 +97,8 @@ Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Bottom
             ) {
-                if (showLoginForm.value) UserForm(
-                    showLoginForm = showLoginForm,
-                    dataStore = dataStore,
+                UserForm(
                     loading = loading,
-                    isCreateAccount = false,
                     navController = navController
                 ) { email, password ->
                     viewModel.signInWithEmailAndPassword(email, password,
@@ -132,23 +112,11 @@ Column(
         }
     }
 }
-}
 
-/**
-Composable function to display a user form for login or account creation.
- * @param showLoginForm A MutableState that holds a boolean indicating whether the login form should be shown or not.
- * @param dataStore The dataStore used to store and retrieve user information.
- * @param loading A boolean indicating whether the form is in loading state or not.
- * @param isCreateAccount A boolean indicating whether the form is for account creation or login.
- * @param onDone A function to be called when the form is submitted, takes in email and password as arguments.
- */
 @Composable
 fun UserForm(
-    showLoginForm: MutableState<Boolean>,
-    dataStore: StoreUserName,
     navController: NavController,
     loading: Boolean,
-    isCreateAccount: Boolean = false,
     onDone: (String, String) -> Unit = { email, password -> }
 ) {
     val email = rememberSaveable {
@@ -169,11 +137,7 @@ fun UserForm(
         }
 
     val scope = rememberCoroutineScope()
-    Column(
-        modifier = Modifier
-            .background(MaterialTheme.colorScheme.background),
-        verticalArrangement = Arrangement.Center
-    ) {
+
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -226,7 +190,7 @@ fun UserForm(
                 }
             }
         }
-    }
+
 }
 
 

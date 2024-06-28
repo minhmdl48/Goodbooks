@@ -1,10 +1,7 @@
 package com.minhmdl.goodbooks.screens.shelf
 
-import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,38 +13,27 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Star
-import androidx.compose.material.icons.rounded.StarBorder
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.text.HtmlCompat
@@ -57,20 +43,11 @@ import com.google.firebase.ktx.Firebase
 import com.grayseal.bookshelf.ui.theme.poppinsFamily
 import com.minhmdl.goodbooks.R
 import com.minhmdl.goodbooks.model.Book
-import com.minhmdl.goodbooks.model.Review
 import com.minhmdl.goodbooks.model.Shelf
 import com.minhmdl.goodbooks.navigation.GoodbooksDestinations
-import com.minhmdl.goodbooks.ui.theme.Black
-import com.minhmdl.goodbooks.ui.theme.Gray500
 import com.minhmdl.goodbooks.ui.theme.GreenIndicator
-import com.minhmdl.goodbooks.ui.theme.Pink500
-import com.minhmdl.goodbooks.ui.theme.Yellow
 import com.minhmdl.goodbooks.utils.BookListItem
 import com.minhmdl.goodbooks.utils.NavBar
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @Composable
 fun ShelfScreen(navController: NavController, shelfViewModel: ShelfViewModel) {
@@ -86,7 +63,6 @@ fun ShelfScreen(navController: NavController, shelfViewModel: ShelfViewModel) {
     var loading by remember {
         mutableStateOf(true)
     }
-    var tabIndex by remember{mutableStateOf(0)}
     val context = LocalContext.current
     shelves = shelfViewModel.getShelves(userId, context, onDone = {
         loading = false
@@ -95,7 +71,7 @@ fun ShelfScreen(navController: NavController, shelfViewModel: ShelfViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(20.dp)
+                .padding(10.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -130,7 +106,7 @@ fun ShelfBooks(
     shelfViewModel: ShelfViewModel
 ) {
     val shelfNames = shelves.map { it.name }
-    val (selectedTab, setSelectedTab) = remember { mutableStateOf(0) }
+    val (selectedTab, setSelectedTab) = remember { mutableIntStateOf(0) }
     var booksInShelf by remember {
         mutableStateOf(mutableListOf<Book>())
     }
@@ -148,9 +124,7 @@ fun ShelfBooks(
     var reviewsLoading by remember {
         mutableStateOf(true)
     }
-    var booksReviewed: List<Review> by remember {
-        mutableStateOf(emptyList())
-    }
+
     booksInFavourites = shelfViewModel.fetchFavourites(userId) {
         favouritesLoading = false
     }
@@ -261,9 +235,11 @@ fun ShelfBooks(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Image(
-                        painter = painterResource(id = R.drawable.not_found),
+                        painter = painterResource(id = R.drawable.ic_empty),
                         contentDescription = "Empty Shelf",
-                        modifier = Modifier.padding(bottom = 20.dp)
+                        modifier = Modifier
+                            .size(80.dp)
+                            .padding(bottom = 20.dp)
                     )
                     Text(
                         "You haven't added any books yet.",

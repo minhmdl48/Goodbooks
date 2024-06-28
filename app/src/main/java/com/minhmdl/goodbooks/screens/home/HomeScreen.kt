@@ -1,29 +1,40 @@
 package com.minhmdl.goodbooks.screens.home
 
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.*
-import androidx.compose.material.icons.rounded.*
-import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.grayseal.bookshelf.ui.theme.poppinsFamily
+import com.minhmdl.goodbooks.R
 import com.minhmdl.goodbooks.data.StoreUserName
 import com.minhmdl.goodbooks.model.Book
 import com.minhmdl.goodbooks.navigation.GoodbooksDestinations
@@ -37,7 +48,6 @@ import com.minhmdl.goodbooks.ui.theme.GreenIndicator
 import com.minhmdl.goodbooks.utils.BookListItem
 import com.minhmdl.goodbooks.utils.Category
 import com.minhmdl.goodbooks.utils.NavBar
-import java.util.*
 
 @Composable
 fun HomeScreen(
@@ -80,7 +90,6 @@ fun HomeScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeContent(
     name: String?,
@@ -101,7 +110,7 @@ fun HomeContent(
     Scaffold(content = { padding ->
         LazyColumn(
             modifier = Modifier
-                .padding(top = 55.dp,),
+                .padding(top = 60.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             item {
@@ -172,7 +181,7 @@ fun Categories(navController: NavController) {
             modifier = Modifier.padding(top = 10.dp, start = 20.dp, end = 20.dp)
         )
 
-        Spacer(modifier = Modifier.height(5.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         val keysList = categories.keys.toList()
         LazyRow(
@@ -199,18 +208,6 @@ fun Categories(navController: NavController) {
     }
 }
 
-@Preview
-@Composable
-fun CategoriesPreview() {
-    Categories(navController = rememberNavController())
-}
-
-/**
- * Composable function that displays the user's reading list, with the book cover images,
- * the title and author of the book, and an onClick listener that navigates to a book detail screen.
- * @param onClick The function that handles clicks on the reading list items.
- * */
-
 @Composable
 fun ReadingList(navController: NavController, loading: Boolean, readingList: List<Book>) {
     Text(
@@ -236,26 +233,32 @@ fun ReadingList(navController: NavController, loading: Boolean, readingList: Lis
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight()
-                    .padding(bottom = 5.dp),
+                    .height(200.dp)
+                    .padding(10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_empty),
+                    contentDescription = "Empty Shelf",
+                    modifier = Modifier
+                        .size(80.dp)
+                        .padding(bottom = 20.dp)
+                )
                 Text(
-                    "Uh oh, you have no current reads!",
+                    "Your reading list is empty!",
                     fontFamily = poppinsFamily,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
                 )
-                Spacer(modifier = Modifier.height(56.dp))
             }
         } else {
             Column(
                 modifier = Modifier
                     .padding(top = 5.dp, start = 20.dp, end = 20.dp, bottom = 56.dp),
-                verticalArrangement = Arrangement.spacedBy(15.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 for (item in readingList) {
                     item.imageLinks.thumbnail?.let {
@@ -267,6 +270,7 @@ fun ReadingList(navController: NavController, loading: Boolean, readingList: Lis
                         )
                     }
                 }
+                Spacer(modifier = Modifier.height(5.dp))
             }
         }
     }

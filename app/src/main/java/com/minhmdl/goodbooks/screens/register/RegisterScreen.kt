@@ -1,7 +1,6 @@
 package com.minhmdl.goodbooks.screens.register
 
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,14 +10,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,9 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -42,7 +36,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.grayseal.bookshelf.ui.theme.poppinsFamily
-import com.minhmdl.goodbooks.R
 import com.minhmdl.goodbooks.data.StoreUserName
 import com.minhmdl.goodbooks.navigation.GoodbooksDestinations
 import com.minhmdl.goodbooks.ui.theme.Black
@@ -56,13 +49,8 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun RegisterScreen(
-    navController: NavController,
-    viewModel: RegisterViewModel,
-    dataStore: StoreUserName
+    navController: NavController, viewModel: RegisterViewModel, dataStore: StoreUserName
 ) {
-    val showRegisterForm = rememberSaveable {
-        mutableStateOf(true)
-    }
 
     var loading by remember { mutableStateOf(false) }
 
@@ -78,23 +66,11 @@ fun RegisterScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxSize(),
-            contentAlignment = Alignment.Center
+            modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.book),
-                contentDescription = "backgroundImage",
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .offset(y = 15.dp)
-                    .size(200.dp),
-                contentScale = ContentScale.Crop
-            )
+
             Column(
-                modifier = Modifier
-                    .fillMaxHeight(0.6f)
-                    .align(Alignment.BottomCenter),
+                modifier = Modifier.fillMaxHeight(0.6f),
                 verticalArrangement = Arrangement.SpaceAround
             ) {
                 val text = "Create an account"
@@ -103,8 +79,7 @@ fun RegisterScreen(
                     fontFamily = poppinsFamily,
                     fontSize = 25.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .padding(start = 20.dp, end = 20.dp),
+                    modifier = Modifier.padding(start = 20.dp, end = 20.dp),
                     color = Black
                 )
                 Column(
@@ -114,19 +89,17 @@ fun RegisterScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Bottom
                 ) {
-                    if (showRegisterForm.value) CreateUserForm(
-                        showRegisterForm = showRegisterForm,
+                    CreateUserForm(
                         dataStore = dataStore,
                         loading = loading,
                         navController = navController,
-                        isCreateAccount = false
                     ) { email, password ->
-                        viewModel.createUserWithEmailAndPassword(email, password,
+                        viewModel.createUserWithEmailAndPassword(email,
+                            password,
                             onRegisterSuccess = { navController.navigate(GoodbooksDestinations.LOGIN_ROUTE) },
                             onError = {
                                 Toast.makeText(context, it, Toast.LENGTH_LONG).show()
-                            }
-                        )
+                            })
                     }
                 }
             }
@@ -136,12 +109,10 @@ fun RegisterScreen(
 
 @Composable
 fun CreateUserForm(
-    showRegisterForm: MutableState<Boolean>,
     navController: NavController,
     dataStore: StoreUserName,
     loading: Boolean,
-    isCreateAccount: Boolean = false,
-    onDone: (String, String) -> Unit = { email, password -> }
+    onDone: (String, String) -> Unit = { _, _ -> }
 ) {
     val email = rememberSaveable {
         mutableStateOf("")
@@ -158,15 +129,13 @@ fun CreateUserForm(
     val passwordFocusRequest = FocusRequester.Default
 
     val valid: Boolean = remember(email.value, password.value) {
-        (email.value.trim().isNotEmpty()
-                && password.value.trim().isNotEmpty()
-                && password.value.length >= 6) && isValidEmail(email.value)
+        (email.value.trim().isNotEmpty() && password.value.trim()
+            .isNotEmpty() && password.value.length >= 6) && isValidEmail(email.value)
     }
 
     val scope = rememberCoroutineScope()
     Column(
-        modifier = Modifier
-            .background(MaterialTheme.colorScheme.background),
+        modifier = Modifier.background(MaterialTheme.colorScheme.background),
         verticalArrangement = Arrangement.Center
     ) {
         Column(
@@ -188,52 +157,40 @@ fun CreateUserForm(
             Row(
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(
-                    buildAnnotatedString {
-                        withStyle(
-                            style = SpanStyle(
-                                color = Gray500,
-                                fontSize = 12.sp,
-                                fontFamily = poppinsFamily
-                            )
-                        ) {
-                            append("By signing up, you agree to the Goodbooks ")
-                        }
-                        withStyle(
-                            style = SpanStyle(
-                                color = Color.Blue,
-                                fontSize = 12.sp,
-                                fontFamily = poppinsFamily
-                            )
-                        ) {
-                            append("Terms of Service ")
-                        }
-                        withStyle(
-                            style = SpanStyle(
-                                color = Gray500,
-                                fontSize = 12.sp,
-                                fontFamily = poppinsFamily
-                            )
-                        ) {
-                            append("and ")
-                        }
-                        withStyle(
-                            style = SpanStyle(
-                                color = Color.Blue,
-                                fontSize = 12.sp,
-                                fontFamily = poppinsFamily
-                            )
-                        ) {
-                            append("Privacy Policy.")
-                        }
+                Text(buildAnnotatedString {
+                    withStyle(
+                        style = SpanStyle(
+                            color = Gray500, fontSize = 12.sp, fontFamily = poppinsFamily
+                        )
+                    ) {
+                        append("By signing up, you agree to the Goodbooks ")
                     }
-                )
+                    withStyle(
+                        style = SpanStyle(
+                            color = Color.Blue, fontSize = 12.sp, fontFamily = poppinsFamily
+                        )
+                    ) {
+                        append("Terms of Service ")
+                    }
+                    withStyle(
+                        style = SpanStyle(
+                            color = Gray500, fontSize = 12.sp, fontFamily = poppinsFamily
+                        )
+                    ) {
+                        append("and ")
+                    }
+                    withStyle(
+                        style = SpanStyle(
+                            color = Color.Blue, fontSize = 12.sp, fontFamily = poppinsFamily
+                        )
+                    ) {
+                        append("Privacy Policy.")
+                    }
+                })
             }
 
-                SubmitButton(
-                textId = "Sign up",
-                loading = loading,
-                validInputs = valid
+            SubmitButton(
+                textId = "Sign up", loading = loading, validInputs = valid
             ) {
                 onDone(email.value.trim(), password.value.trim())
                 name.value.trim()
@@ -242,37 +199,28 @@ fun CreateUserForm(
                 }
             }
 
-            Column(
-                verticalArrangement = Arrangement.spacedBy(5.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Row(
+                horizontalArrangement = Arrangement.Center
             ) {
-                Row(
-                    modifier = Modifier.padding(top = 8.dp, bottom = 50.dp),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    val text = "Sign In"
-                    val desc = "Already have an account?"
-                    Text(
-                        text = desc,
-                        fontFamily = poppinsFamily,
-                        fontSize = 15.sp,
-                        color = Black
-                    )
-                    Text(text,
-                        fontFamily = poppinsFamily,
-                        fontSize = 15.sp,
-                        color = Black,
-                        modifier = Modifier
-                            .clickable {
-                                navController.navigate(GoodbooksDestinations.LOGIN_ROUTE) {
-                                    launchSingleTop = true
-                                }
+                val text = "Sign In"
+                val desc = "Already have an account?"
+                Text(
+                    text = desc, fontFamily = poppinsFamily, fontSize = 15.sp, color = Black
+                )
+                Text(text,
+                    fontFamily = poppinsFamily,
+                    fontSize = 15.sp,
+                    color = Black,
+                    modifier = Modifier
+                        .clickable {
+                            navController.navigate(GoodbooksDestinations.LOGIN_ROUTE) {
+                                launchSingleTop = true
                             }
-                            .padding(start = 5.dp),
-                        fontWeight = FontWeight.Bold)
-                }
+                        }
+                        .padding(start = 5.dp),
+                    fontWeight = FontWeight.Bold)
             }
         }
     }
-}
 
+}

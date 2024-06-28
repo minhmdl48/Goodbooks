@@ -41,15 +41,22 @@ fun DatePickerWithDialog(
     val millisToLocalDate = dateState.selectedDateMillis?.let {
         DateUtils().convertMillisToLocalDate(it)
     }
+    var issetdate by remember{ mutableStateOf(false) }
 
     var dateToString by remember { mutableStateOf(
         millisToLocalDate?.let {
             DateUtils().dateToString(millisToLocalDate)
         } ?: "Choose Date"
     )}
-
+   var date1 = dateState.selectedDateMillis?.let {
+        DateUtils().convertMillisToLocalDate(it)?.let { date ->
+            DateUtils().dateToString(date)
+        }
+    } ?: "Choose Date"
     LaunchedEffect(book.bookID) {
-        dateToString = bookViewModel.getDate(userId, book.bookID)
+        bookViewModel.getDate(userId, book.bookID).collect{
+            dateToString = it
+        }
         Log.d("DatePicker", "dateToString: $dateToString")
     }
     var showDialog by remember { mutableStateOf(false) }
@@ -74,9 +81,11 @@ fun DatePickerWithDialog(
                     Button(
                         onClick = {
                             showDialog = false
+                            Log.d("DatePicker", "dateToString: $date1")
                             CoroutineScope(Dispatchers.IO).launch {
-                                    bookViewModel.setDate(userId, book.bookID, dateToString)
-                            }
+                                    bookViewModel.setDate(userId, book.bookID, date1)
+                                    }
+
                         }
                     ) {
                         Text(text = "OK")

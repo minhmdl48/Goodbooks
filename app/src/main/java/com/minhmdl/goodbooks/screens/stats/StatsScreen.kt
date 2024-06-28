@@ -70,7 +70,6 @@ fun StatsScreen(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = "Stats Screen")
 
                 var entries = (0..11).map { month ->
                     month to numBook.getOrDefault(month + 1, 0)
@@ -89,6 +88,9 @@ fun StatsScreen(
                     marker = rememberMarker(),
                     horizontalLayout = horizontalLayout,
                 )
+                Text(
+                    text = "Number of books read per month",
+                    modifier = Modifier.padding(10.dp))
             }
         }
     )
