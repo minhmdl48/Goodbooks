@@ -41,7 +41,6 @@ fun DatePickerWithDialog(
     val millisToLocalDate = dateState.selectedDateMillis?.let {
         DateUtils().convertMillisToLocalDate(it)
     }
-    var issetdate by remember{ mutableStateOf(false) }
 
     var dateToString by remember { mutableStateOf(
         millisToLocalDate?.let {
@@ -49,9 +48,9 @@ fun DatePickerWithDialog(
         } ?: "Choose Date"
     )}
    var date1 = dateState.selectedDateMillis?.let {
-        DateUtils().convertMillisToLocalDate(it)?.let { date ->
-            DateUtils().dateToString(date)
-        }
+       DateUtils().convertMillisToLocalDate(it).let { date ->
+           DateUtils().dateToString(date)
+       }
     } ?: "Choose Date"
     LaunchedEffect(book.bookID) {
         bookViewModel.getDate(userId, book.bookID).collect{

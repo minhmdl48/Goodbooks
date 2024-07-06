@@ -124,7 +124,7 @@ fun BookScreen(
                 modifier = Modifier.align(Alignment.TopCenter)
             )
             if (book != null) {
-                Details( book, bookViewModel)
+                Details( book, bookViewModel, navController)
             }
         }
     }
@@ -163,7 +163,7 @@ fun GoodbooksAppBarPreview() {
 }
 
 @Composable
-fun Details( book: Book, bookViewModel: BookViewModel) {
+fun Details( book: Book, bookViewModel: BookViewModel, navController: NavController) {
     var bookTitle = "Unavailable"
     var bookAuthor = "Unavailable"
     var rating = "0"
@@ -225,7 +225,8 @@ fun Details( book: Book, bookViewModel: BookViewModel) {
             isbn = isbn,
             description = description,
             book = book,
-            bookViewModel = bookViewModel
+            bookViewModel = bookViewModel,
+            navController = navController
         )
 
     }
@@ -269,7 +270,8 @@ fun BookDescription(
     pages: String,
     description: String,
     book: Book,
-    bookViewModel: BookViewModel
+    bookViewModel: BookViewModel,
+    navController: NavController
 ) {
     var restOfText by remember { mutableStateOf("") }
     val firstParagraph = description.substringBefore("\n\n")
@@ -487,7 +489,8 @@ fun BookDescription(
             MenuSample(
                 book,
                 bookViewModel,
-                context = LocalContext.current
+                context = LocalContext.current,
+                navController = navController
             )
 
             HorizontalDivider(

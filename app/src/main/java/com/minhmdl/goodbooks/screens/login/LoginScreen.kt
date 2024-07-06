@@ -19,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -131,67 +130,63 @@ fun UserForm(
     val passwordFocusRequest = FocusRequester.Default
 
     val valid: Boolean = remember(email.value, password.value) {
-            (email.value.trim().isNotEmpty()
-                    && password.value.trim().isNotEmpty()
-                    && password.value.length >= 6) && isValidEmail(email.value)
-        }
+        (email.value.trim().isNotEmpty()
+                && password.value.trim().isNotEmpty()
+                && password.value.length >= 6) && isValidEmail(email.value)
+    }
 
-    val scope = rememberCoroutineScope()
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        EmailInput(emailState = email, enabled = !loading)
+
+        PasswordInput(
+            modifier = Modifier.focusRequester(passwordFocusRequest),
+            passwordState = password,
+            labelId = "Password",
+            enabled = !loading,
+            passwordVisibility = passwordVisibility,
+        )
+
+        SubmitButton(
+            textId = "Log in",
+            loading = loading,
+            validInputs = valid
+        ) { onDone(email.value.trim(), password.value.trim()) }
 
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(5.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            EmailInput(emailState = email, enabled = !loading)
-
-            PasswordInput(
-                modifier = Modifier.focusRequester(passwordFocusRequest),
-                passwordState = password,
-                labelId = "Password",
-                enabled = !loading,
-                passwordVisibility = passwordVisibility,
-            )
-
-            SubmitButton(
-                textId = "Log in",
-                loading = loading,
-                validInputs = valid
-            ) { onDone(email.value.trim(), password.value.trim()) }
-
-            Column(
-                verticalArrangement = Arrangement.spacedBy(5.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Row(
+                modifier = Modifier.padding(top = 8.dp, bottom = 50.dp),
+                horizontalArrangement = Arrangement.Center
             ) {
-                    Row(
-                    modifier = Modifier.padding(top = 8.dp, bottom = 50.dp),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    val text = "Sign up now!!"
-                    val desc = "Don't have an account?"
-                    Text(
-                        text = desc,
-                        fontFamily = poppinsFamily,
-                        fontSize = 15.sp,
-                        color = Black
-                    )
-                    Text(text,
-                        fontFamily = poppinsFamily,
-                        fontSize = 15.sp,
-                        color = Black,
-                        modifier = Modifier
-                            .clickable {
-                                navController.navigate(GoodbooksDestinations.REGISTER_ROUTE) {
-                                    // This will clear the backstack and make the RegisterScreen the top of the navigation stack
-                                    launchSingleTop = true
-                                }
+                val text = "Sign up now!!"
+                val desc = "Don't have an account?"
+                Text(
+                    text = desc,
+                    fontFamily = poppinsFamily,
+                    fontSize = 15.sp,
+                    color = Black
+                )
+                Text(text,
+                    fontFamily = poppinsFamily,
+                    fontSize = 15.sp,
+                    color = Black,
+                    modifier = Modifier
+                        .clickable {
+                            navController.navigate(GoodbooksDestinations.REGISTER_ROUTE) {
+                                // This will clear the backstack and make the RegisterScreen the top of the navigation stack
+                                launchSingleTop = true
                             }
-                            .padding(start = 5.dp),
-                        fontWeight = FontWeight.Bold)
-                }
+                        }
+                        .padding(start = 5.dp),
+                    fontWeight = FontWeight.Bold)
             }
         }
-
+    }
 }
-
-
 

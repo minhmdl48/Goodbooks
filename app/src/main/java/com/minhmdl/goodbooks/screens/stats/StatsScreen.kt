@@ -83,7 +83,7 @@ fun StatsScreen(
                         },
                     ),
                     model = entryModelOf(*entries),
-                    startAxis = startAxis(valueFormatter = startAxisValueFormatter, maxLabelCount = START_AXIS_LABEL_COUNT),
+                    startAxis = startAxis(valueFormatter = startAxisValueFormatter),
                     bottomAxis = bottomAxis(itemPlacer = bottomAxisItemPlacer, valueFormatter = bottomAxisValueFormatter),
                     marker = rememberMarker(),
                     horizontalLayout = horizontalLayout,
@@ -95,47 +95,17 @@ fun StatsScreen(
         }
     )
 }
-@Composable
-fun YearPickerDialog(currentYear: Int, onYearSelected: (Int) -> Unit) {
-    val years = (currentYear - 10)..(currentYear + 10) // Adjust the range as needed
-    AlertDialog(
-        onDismissRequest = {},
-        title = { Text("Select Year") },
-        text = {
-            LazyColumn {
-                items(years.toList()) { year ->
-                    TextButton(onClick = { onYearSelected(year) }) {
-                        Text(year.toString())
-                    }
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = { Button(onClick = {}) { Text("Cancel") } }
-    )
-}
 
-private const val COLOR_1_CODE = 0xffff5500
-private const val COLOR_2_CODE = 0xffd3d826
 private const val COLUMN_WIDTH_DP = 16f
-private const val THRESHOLD_LINE_VALUE = 13f
 private const val START_AXIS_LABEL_COUNT = 8
 private const val BOTTOM_AXIS_ITEM_SPACING = 1
 private const val BOTTOM_AXIS_ITEM_OFFSET = 0
 
-private val color1 = Color(COLOR_1_CODE)
-private val color2 = Color(COLOR_2_CODE)
-private val chartColors = listOf(color1)
-private val thresholdLineLabelMarginValue = 4.dp
-private val thresholdLineLabelHorizontalPaddingValue = 8.dp
-private val thresholdLineLabelVerticalPaddingValue = 2.dp
-private val thresholdLineLabelPadding =
-    dimensionsOf(thresholdLineLabelHorizontalPaddingValue, thresholdLineLabelVerticalPaddingValue)
-private val thresholdLineLabelMargins = dimensionsOf(thresholdLineLabelMarginValue)
 private val startAxisValueFormatter = DecimalFormatAxisValueFormatter<Start>()
+
 private val horizontalLayout = HorizontalLayout.FullWidth(
-    startPaddingDp = DefaultDimens.COLUMN_OUTSIDE_SPACING.half,
-    endPaddingDp = DefaultDimens.COLUMN_OUTSIDE_SPACING.half,
+    startPaddingDp = DefaultDimens.COLUMN_OUTSIDE_SPACING,
+    endPaddingDp = DefaultDimens.COLUMN_OUTSIDE_SPACING,
 )
 private val bottomAxisItemPlacer = AxisItemPlacer.Horizontal.default(BOTTOM_AXIS_ITEM_SPACING, BOTTOM_AXIS_ITEM_OFFSET)
 private val monthsOfYear = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")

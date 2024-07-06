@@ -596,7 +596,8 @@ fun BookListItem(
 fun MenuSample(
     book: Book,
     bookViewModel: BookViewModel,
-    context: Context
+    context: Context,
+    navController: NavController
 ) {
     val userId = Firebase.auth.currentUser?.uid
     var addbooksVisible by rememberSaveable {
@@ -670,7 +671,8 @@ fun MenuSample(
                 onDismiss = { addbooksVisible = false },
                 book = book,
                 bookViewModel = bookViewModel,
-                context = context
+                context = context,
+                navController = navController
             )
         }
         if (isDone) {

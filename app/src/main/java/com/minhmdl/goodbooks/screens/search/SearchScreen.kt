@@ -1,10 +1,11 @@
 package com.minhmdl.goodbooks.screens.search
 
+import android.util.Log
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,6 +19,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,7 +29,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,7 +37,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -48,8 +48,10 @@ import com.grayseal.bookshelf.ui.theme.poppinsFamily
 import com.minhmdl.goodbooks.R
 import com.minhmdl.goodbooks.model.Book
 import com.minhmdl.goodbooks.navigation.GoodbooksDestinations
+import com.minhmdl.goodbooks.screens.category.categoriesList
 import com.minhmdl.goodbooks.ui.theme.GreenIndicator
 import com.minhmdl.goodbooks.utils.BookListItem
+import com.minhmdl.goodbooks.utils.GoodbooksDivider
 import com.minhmdl.goodbooks.utils.NavBar
 
 @Composable
@@ -58,30 +60,61 @@ fun SearchScreen(
     searchViewModel: SearchViewModel
 ) {
     Scaffold(content = { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .padding(top = 60.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_search1),
-                contentDescription = "Search",
-                modifier = Modifier
-                    .size(80.dp)
-                    .padding(bottom = 20.dp)
-            )
-            Text(
-                "See new releases, most-read books, quotes, lists, and more in these popular genres.",
-                fontFamily = poppinsFamily,
-                fontSize = 16.sp,
-                maxLines=2,
-                fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
-            )
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_search1),
+                        contentDescription = "Search",
+                        modifier = Modifier
+                            .size(100.dp)
+                            .padding(20.dp)
+                    )
+                }
             }
+            item {
+                Text(
+                    "See new releases, most-read books, quotes, lists, and more in these popular genres.",
+                    fontFamily = poppinsFamily,
+                    fontSize = 16.sp,
+                    maxLines=2,
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
+                )
+            }
+            items(categoriesList.keys.toList()) { category ->
+                Log.d("Search","Category: $category")
+                Row(
+                    modifier = Modifier
+                        .padding(top=5.dp, start=20.dp)
+                        .clickable {
+                            navController.navigate("category/$category")
+                        },
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = category
+                    )
+                    Icon(
+                        imageVector = Icons.Default.ArrowForward,
+                        contentDescription = "Arrow Icon"
+                    )
+                }
+                GoodbooksDivider()
+            }
+            item{
+                Spacer(modifier = Modifier.height(5.dp))
+            }
+        }
     },
         bottomBar = {
             NavBar(navController)

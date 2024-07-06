@@ -185,7 +185,7 @@ fun Categories(navController: NavController) {
 
         val keysList = categories.keys.toList()
         LazyRow(
-            modifier = Modifier.padding(bottom = 10.dp, end = 0.dp, start = 0.dp),
+            modifier = Modifier.padding(bottom = 10.dp, end = 5.dp, start = 0.dp),
             horizontalArrangement = Arrangement.spacedBy(30.dp)
         ) {
             itemsIndexed(items = keysList) { index: Int, item: String ->

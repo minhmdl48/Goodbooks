@@ -49,7 +49,7 @@ fun CategoryScreen(
                     .size(35.dp)
                     .clip(CircleShape)
                     .clickable(enabled = true, onClick = {
-                        navController.navigate(GoodbooksDestinations.HOME_ROUTE)
+                        navController.popBackStack()
                     })
             )
             Text(
@@ -65,7 +65,7 @@ fun CategoryScreen(
         }
         if (category != null) {
             viewModel.loading.value = true
-            viewModel.searchBooks(category)
+            viewModel.searchBooks("subject:"+category)
         }
         Spacer(modifier = Modifier.height(15.dp))
         Results(navController = navController, searchViewModel = viewModel)

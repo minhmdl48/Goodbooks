@@ -87,15 +87,14 @@ class BookViewModel @Inject constructor(private val repository: BookRepository) 
 
         return@withContext false
     }
-
     suspend fun deleteABookInShelf(userId: String?, book: Book, shelfName: String?): Boolean =
         withContext(Dispatchers.IO) {
             if (userId != null) {
                 val db = FirebaseFirestore.getInstance().collection("users").document(userId)
                 db.get().await().let { documentSnapshot ->
                     if (documentSnapshot.exists()) {
-                        val userShelves =
-                            documentSnapshot.toObject<User>()?.shelves as MutableList<Shelf>
+                        val user = documentSnapshot.toObject<User>()
+                        val userShelves = user?.shelves as MutableList<Shelf>
                         val shelf = userShelves.find { it.name == shelfName }
                         if (shelf != null) {
                             val books: MutableList<Book> = shelf.books as MutableList<Book>
@@ -105,6 +104,20 @@ class BookViewModel @Inject constructor(private val repository: BookRepository) 
                             val index = userShelves.indexOfFirst { it.name == shelfName }
                             userShelves[index] = shelf
                             db.update("shelves", userShelves).await()
+
+                            // Delete related data
+                            val progressReadingList = user.progressReading?.toMutableList()
+                            progressReadingList?.removeIf { it.bookId == book.bookID }
+                            db.update("progressReading", progressReadingList).await()
+
+                            val reviewReadingList = user.reviews?.toMutableList()
+                            reviewReadingList?.removeIf { it.bookId == book.bookID }
+                            db.update("reviews", reviewReadingList).await()
+
+                            val dateReadingList = user.dates?.toMutableList()
+                            dateReadingList?.removeIf { it.bookId == book.bookID }
+                            db.update("dates", dateReadingList).await()
+
                             return@withContext true
                         }
                     }

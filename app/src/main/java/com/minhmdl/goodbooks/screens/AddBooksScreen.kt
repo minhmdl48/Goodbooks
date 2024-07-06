@@ -44,9 +44,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.minhmdl.goodbooks.model.Book
+import com.minhmdl.goodbooks.navigation.GoodbooksDestinations
 import com.minhmdl.goodbooks.screens.book.BookViewModel
 import com.minhmdl.goodbooks.utils.GoodbooksAlertDialog
 import com.minhmdl.goodbooks.utils.GoodbooksDivider
@@ -60,7 +63,8 @@ fun AddBooksScreen(
     onDismiss: () -> Unit,
     book: Book,
     bookViewModel: BookViewModel,
-    context: Context
+    context: Context,
+    navController: NavController
 ) {
     val userId = Firebase.auth.currentUser?.uid ?: ""
     val showDialog = remember { mutableStateOf(false) }
@@ -89,7 +93,6 @@ fun AddBooksScreen(
         }
         selectedStates[index] = true
     }
-
     Dialog(onDismissRequest = onDismiss) {
         Scaffold(
             topBar = {
@@ -125,6 +128,7 @@ fun AddBooksScreen(
                                         context
                                     )
                                 }
+
                                 onDismiss()
                             },
 
@@ -191,6 +195,7 @@ fun AddBooksScreen(
                                 )
                             }
                             onDismiss()
+                            navController.navigate(GoodbooksDestinations.SHELF_ROUTE)
                         }
                     )
                 }
